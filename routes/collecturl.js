@@ -6,13 +6,13 @@ var router = express.Router();
 var connection = mysql.createConnection({
 
     'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
-    'user' : 'LINKBOX',  
+    'user' : 'LINKBOX',
     'password' : 'dlrpqkfhdnflek',
     'database' : 'LINKBOX'
 });
 
 //url 가져오기
-router.post('/:cbid/urllist', function(req, res, next) {
+router.post('/:usrid/:cbid/urllist', function(req, res, next) {
     console.log(req)
     connection.query('select * from url where cbid = ? ', [req.params.cbid], function (error, cursor) {
         console.log(error)
