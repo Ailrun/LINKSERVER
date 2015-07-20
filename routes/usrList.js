@@ -1,6 +1,5 @@
 var express = require('express');
 var mysql = require('mysql');
-var app = express();
 var router = express.Router();
 
 var connection = mysql.createConnection({
@@ -50,7 +49,7 @@ router.post('/signup', function(req, res, next) {
             );
         }
         else if (isAlreadyIn.length == 0) {
-            app.redirect('/signup/addUser');
+            res.redirect('/signup/addUser');
         }
         else {
             res.json({
@@ -87,10 +86,10 @@ router.post('/facebook', function(req, res, next) {
             );
         }
         else if (isAlreadyIn.length == 0) {
-            app.redirect('/facebook/signup');
+            res.redirect('/usrList/facebook/signup');
         }
         else {
-            app.redirect('/facebook/login');
+            res.redirect('/usrList/facebook/login');
         }
     });
 });
@@ -104,7 +103,7 @@ router.post('/facebook/signup', function(req, res, next) {
             );
         }
         else {
-            app.redirect('/facebook/login');
+            res.redirect('/usrList/facebook/login');
         }
     });
 });
