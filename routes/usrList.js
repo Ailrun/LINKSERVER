@@ -11,6 +11,7 @@ var connection = mysql.createConnection({
 
 router.post('/login', function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=? AND usrPassword=?;', [req.body.usrID, req.body.usrPassword], function(error, cursor) {
+        console.log(req.body);
         if (error != undefined) {
             res.json(
                 'there is some error in login', 503
