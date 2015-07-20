@@ -30,10 +30,7 @@ router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
             console.log(error);
         }
         else {
-            res.json({
-                'result' : true,
-                'object' : urlList
-            });
+            res.json(urlList);
         }
     });
 });
