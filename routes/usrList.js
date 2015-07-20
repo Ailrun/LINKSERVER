@@ -13,9 +13,10 @@ router.post('/login', function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=? AND usrPassword=?;', [req.body.usrID, req.body.usrPassword], function(error, cursor) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in login', 503
+            res.status(503).json(
+                'there is some error in login'
             );
+            console.log(error);
         }
         else if (cursor.length > 0) {
             if (cursor[0].facebook == false) {
@@ -44,9 +45,10 @@ router.post('/signup', function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=?;', [req.body.usrID], function(error, isAlreadyIn) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in signup while checking ID', 503
+            res.status(503).json(
+                'there is some error in signup while checking ID'
             );
+            console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
             res.redirect('/signup/addUser');
@@ -64,9 +66,10 @@ router.post('/signup/addUser', function(req, res, next){
     connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, FALSE);', [req.body.usrID, req.body.usrPassword, req.body.usrName, req.body.usrProfile], function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in signup while insert User', 503
+            res.status(503).json(
+                'there is some error in signup while insert User'
             );
+            console.log(error);
         }
         else {
             res.json({
@@ -81,9 +84,10 @@ router.post('/facebook', function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=?;', [req.body.usrID], function(error, isAlreadyIn) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in facebook login while checking ID', 503
+            res.status(503).json(
+                'there is some error in facebook login while checking ID'
             );
+            console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
             facebookSignup(req, res, next);
@@ -98,9 +102,10 @@ var facebookSignup = function(req, res, next) {
     connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, TRUE)', [req.body.usrID, req.body.usrPassword, req.body.usrName, req.body.usrProfile], function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in facebook insert User', 503
+            res.status(503).json(
+                'there is some error in facebook insert User'
             );
+            console.log(error);
         }
         else {
             facebookLogin(req, res, next);
@@ -112,9 +117,10 @@ var facebookLogin = function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=? AND usrPassword=?;', [req.body.usrID, req.body.usrPassword], function(error, cursor) {
         console.log(req.body);
         if (error != undefined) {
-            res.json(
-                'there is some error in login', 503
+            res.status(503).json(
+                'there is some error in login'
             );
+            console.log(error);
         }
         else if (cursor.length > 0) {
             if (cursor[0].facebook == true) {
