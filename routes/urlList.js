@@ -14,7 +14,7 @@ const urlListQuery = ('SELECT U.*, GL.*\
                       LEFT JOIN goodList AS GL ON U.urlKey=GL.urlKey\
                       WHERE U.urlKey IN\
                       ( SELECT UofL.urlKey\
-                      FROM urlOfBoxList On UofL\
+                      FROM urlOfBoxList AS UofL\
                       WHERE UofL.boxKey=? )\
                       AND GL.usrKey=?\
                       ORDER By U.urlDate');
