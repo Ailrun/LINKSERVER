@@ -88,7 +88,7 @@ router.get('/:usrid/:cbid/:urlid/good', function(req, res, next) {
                 "isgood" : cursor[0]
             });
         }
-    }
+    });
 });
 
 
