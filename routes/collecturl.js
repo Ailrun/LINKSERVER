@@ -29,7 +29,7 @@ router.post('/:usrid/:cbid/addurl', function(req, res, next){
             }
             else {
                 res.json({
-                    "result": cursor[0].max,
+                    "result": 1,
                     "urlid": info.insertId,
                     "address": req.body.address,
                     "urlname": req.body.urlname,
@@ -61,12 +61,12 @@ router.post('/:cbid/editurl', function(req, res, next) {
     connection.query("UPDATE url SET urlname=? where urlid=?;", [req.body.urlname, req.body.urlid], function(error, result) {
         if (error) {
             res.json({
-                result : 'fail'
+                "result" : 'fail'
             });
         }
         else {
             res.json({
-                result : 'success'
+                "result" : 'success'
             });
         }
     });
@@ -78,13 +78,13 @@ router.get('/:usrid/:cbid/:urlid/good', function(req, res, next) {
     connection.query("SELECT good FROM good where usrid=? and cbid=? and urlid=?;", [req.params.usrid, req.params.cbid, req.params.urlid], function(error, cursor) {
         if (error != undefined) {
             res.status(503).json({
-                result : 'fail'
+                "result" : 'fail'
             })
         }
         else {
             res.json({
-                result : 'success'
-                isgood : cursor[0]
+                "result" : 'success'
+                "isgood" : cursor[0]
             });
         }
     }
