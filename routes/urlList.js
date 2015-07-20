@@ -9,20 +9,20 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-const urlListQuery = ('SELECT U.*, GL.*\
+const urlListQuery = ('SELECT U.*, (GL1.urlKey IS NOT NULL)\
                       FROM urlList AS U\
-                      LEFT JOIN goodList AS GL ON U.urlKey=GL.urlKey\
+                      LEFT JOIN goodList AS GL1 ON U.urlKey=GL1.urlKey\
+                      AND GL1.usrKey=?\
                       WHERE U.urlKey IN\
                       ( SELECT UofL.urlKey\
                       FROM urlOfBoxList AS UofL\
                       WHERE UofL.boxKey=? )\
-                      AND GL.usrKey=?\
                       ORDER By U.urlDate');
 
 router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
-    var boxKey = req.params.boxKey;
     var usrKey = req.params.usrKey;
-    connection.query(urlListQuery, [boxKey, usrKey], function (error, urlList) {
+    var boxKey = req.params.boxKey;
+    connection.query(urlListQuery, [usrKey, boxKey], function (error, urlList) {
         if (error != undefined) {
             res.status(503).json(
                 'there is some error in get url'
