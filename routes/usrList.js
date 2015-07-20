@@ -49,7 +49,7 @@ router.post('/signup', function(req, res, next) {
             );
         }
         else if (isAlreadyIn.length == 0) {
-            res.redirect('/signup/addUser');
+            router.redirect('/signup/addUser');
         }
         else {
             res.json({
@@ -86,10 +86,10 @@ router.post('/facebook', function(req, res, next) {
             );
         }
         else if (isAlreadyIn.length == 0) {
-            res.redirect('/facebook/signup');
+            router.redirect('/facebook/signup');
         }
         else {
-            res.redirect('/facebook/login');
+            router.redirect('/facebook/login');
         }
     });
 });
@@ -103,7 +103,7 @@ router.post('/facebook/signup', function(req, res, next) {
             );
         }
         else {
-            res.redirect('/facebook/login');
+            router.redirect('/facebook/login');
         }
     });
 });
