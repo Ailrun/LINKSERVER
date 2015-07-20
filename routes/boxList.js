@@ -15,7 +15,7 @@ const boxListQuery = ('SELECT BL.boxKey, BL.boxName, BofL.boxIndex\
                       WHERE BofL.usrKey=?\
                       ORDER BY BofL.boxIndex;');
 
-router.get('/boxList/:usrKey/boxList', function(req, res, next) {
+router.get('/:usrKey/boxList', function(req, res, next) {
     var usrKey = req.params.usrKey;
     connection.query(boxListQuery, [usrKey], function(error, boxList) {
         if (error != undefined) {
