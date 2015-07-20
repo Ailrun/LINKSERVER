@@ -3,11 +3,13 @@ var path = require('path');
 var logger = require('morgan');
 var bodyParser = require('body-parser');
 
+var boxList = require('./routes/boxList');
+var boxOfUsrList = require('./routes/boxOfUsrList');
+var goodList = require('./routes/goodList');
+var urlList = require('./routes/urlList');
+var urlOfBoxList = require('./routes/urlOfBoxList');
+var usrList = require('./routes/usrList.js');
 var push = require('./routes/push');
-var share = require('./routes/share');
-var collectbox = require('./routes/collectbox');
-var collecturl = require('./routes/collecturl');
-var usr = require('./routes/usr');
 
 var app = express();
 
@@ -22,10 +24,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/share', share);
-app.use('/collectbox', collectbox);
-app.use('/collecturl', collecturl);
-app.use('/usr', usr);
+app.use('/boxOfusrlist', boxOfUsrList);
+app.use('/boxList', boxList);
+app.use('/goodList', goodList);
+app.use('/urlList', urlList);
+app.use('/urlOfboxlist', urlOfBoxList);
+app.use('/usrList', usrList);
 app.use('/push', push);
 
 // catch 404 and forward to error handler
