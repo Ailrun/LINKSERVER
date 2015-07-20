@@ -84,7 +84,7 @@ router.get('/:usrid/:cbid/:urlid/good', function(req, res, next) {
         }
         else {
             res.json({
-                "result" : 'success'
+                "result" : 'success',
                 "isgood" : cursor[0]
             });
         }
