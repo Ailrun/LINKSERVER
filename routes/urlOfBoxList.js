@@ -8,3 +8,5 @@ var connection = mysql.createConnection({
     'password' : 'dlrpqkfhdnflek',
     'database' : 'LINKBOX'
 });
+
+module.exports = router;

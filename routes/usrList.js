@@ -132,3 +132,5 @@ router.post('/facebook/login', function(req, res, next) {
         }
     });
 });
+
+module.exports = router;

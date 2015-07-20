@@ -38,3 +38,5 @@ router.post('/:usrid/:cbid/addurl', function(req, res, next){
         });
     });
 });
+
+module.exports = router;
