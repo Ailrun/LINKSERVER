@@ -21,21 +21,21 @@ router.post('/login', function(req, res, next) {
         else if (cursor.length > 0) {
             if (cursor[0].facebook == false) {
                 res.json({
-                    result : true,
-                    message : 'SUCCESS'
+                    "result" : true,
+                    "message" : 'SUCCESS'
                 });
             }
             else {
                 res.json({
-                    result : false,
-                    message : 'FACEBOOK'
+                    "result" : false,
+                    "message" : 'FACEBOOK'
                 });
             }
         }
         else {
             res.json({
-                result : false,
-                message : 'NOID'
+                "result" : false,
+                "message" : 'NOID'
             })
         }
     });
@@ -55,14 +55,14 @@ router.post('/signup', function(req, res, next) {
         }
         else {
             res.json({
-                result : false,
-                message : 'ID'
+                "result" : false,
+                "message" : 'ID'
             });
         }
     });
 });
 
-router.post('/signup/addUser', function(req, res, next){
+router.post('/signup/addUser', function(req, res, next) {
     connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, FALSE);', [req.body.usrID, req.body.usrPassword, req.body.usrName, req.body.usrProfile], function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
@@ -73,8 +73,8 @@ router.post('/signup/addUser', function(req, res, next){
         }
         else {
             res.json({
-                result : true,
-                message : 'SUCCESS'
+                "result" : true,
+                "message" : 'SUCCESS'
             });
         }
     });
@@ -125,22 +125,22 @@ var facebookLogin = function(req, res, next) {
         else if (cursor.length > 0) {
             if (cursor[0].facebook == true) {
                 res.json({
-                    result : true,
-                    message : 'SUCCESS'
+                    "result" : true,
+                    "message" : 'SUCCESS'
                 });
             }
             else {
                 res.json({
-                    result : false,
-                    message : 'FACEBOOK'
+                    "result" : false,
+                    "message" : 'FACEBOOK'
                 });
             }
         }
         else {
             res.json({
-                result : false,
-                message : 'NOID'
-            })
+                "result" : false,
+                "message" : 'NOID'
+            });
         }
     });
 }

@@ -9,11 +9,32 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-router.get('/:usrid/:cbid/urllist', function(req, res, next) {
-    console.log(req);
-    connection.query('select * from url where cbid = ? ', [req.params.cbid], function (error, cursor) {
-        console.log(error);
-        res.json(cursor);
+const urlListQuery = ('SELECT U.*, GL.\
+                      FROM urlList AS U\
+                      LEFT JOIN goodList AS GL ON U.urlKey=GL.urlKey\
+                      WHERE U.urlKey IN\
+                      ( SELECT UofL.urlKey\
+                      FROM urlOfBoxList On UofL\
+                      WHERE UofL.boxKey=? )\
+                      AND GL.usrKey=?\
+                      ORDER By U.urlDate');
+
+router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
+    var boxKey = req.params.boxKey;
+    var usrKey = req.params.usrKey;
+    connection.query(urlListQuery, [boxKey, usrKey], function (error, urlList) {
+        if (error != undefined) {
+            res.status(503).json(
+                'there is some error in get url'
+            );
+            console.log(error);
+        }
+        else {
+            res.json({
+                'result' : true,
+                'object' : urlList
+            });
+        }
     });
 });
 
