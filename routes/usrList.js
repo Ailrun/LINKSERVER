@@ -86,15 +86,15 @@ router.post('/facebook', function(req, res, next) {
             );
         }
         else if (isAlreadyIn.length == 0) {
-            res.redirect('/usrList/facebook/signup');
+            facebookSignup(req, res, next);
         }
         else {
-            res.redirect('/usrList/facebook/login');
+            facebookLogin(req, res, next);
         }
     });
 });
 
-router.post('/facebook/signup', function(req, res, next) {
+var facebookSignup = function(req, res, next) {
     connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, TRUE)', [req.body.usrID, req.body.usrPassword, req.body.usrName, req.body.usrProfile], function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
@@ -103,12 +103,12 @@ router.post('/facebook/signup', function(req, res, next) {
             );
         }
         else {
-            res.redirect('/usrList/facebook/login');
+            facebookLogin(req, res, next);
         }
     });
-});
+}
 
-router.post('/facebook/login', function(req, res, next) {
+var facebookLogin = function(req, res, next) {
     connection.query('SELECT * FROM usrList WHERE usrID=? AND usrPassword=?;', [req.body.usrID, req.body.usrPassword], function(error, cursor) {
         console.log(req.body);
         if (error != undefined) {
@@ -137,6 +137,6 @@ router.post('/facebook/login', function(req, res, next) {
             })
         }
     });
-});
+}
 
 module.exports = router;
