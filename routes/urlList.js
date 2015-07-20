@@ -9,7 +9,7 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-const urlListQuery = ('SELECT U.*, GL.\
+const urlListQuery = ('SELECT U.*, GL.*\
                       FROM urlList AS U\
                       LEFT JOIN goodList AS GL ON U.urlKey=GL.urlKey\
                       WHERE U.urlKey IN\
