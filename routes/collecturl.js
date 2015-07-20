@@ -76,6 +76,7 @@ router.post('/:cbid/editurl', function(req, res, next) {
 //good data of url
 router.get('/:usrid/:cbid/:urlid/good', function(req, res, next) {
     connection.query("SELECT good FROM good where usrid=? and cbid=? and urlid=?;", [req.params.usrid, req.params.cbid, req.params.urlid], function(error, cursor) {
+        console.log(error);
         if (error != undefined) {
             res.status(503).json({
                 "result" : 'fail'
