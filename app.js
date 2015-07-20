@@ -8,7 +8,7 @@ var boxOfUsrList = require('./routes/boxOfUsrList');
 var goodList = require('./routes/goodList');
 var urlList = require('./routes/urlList');
 var urlOfBoxList = require('./routes/urlOfBoxList');
-var usrList = require('./routes/usrList.js');
+var usrList = require('./routes/usrList');
 var push = require('./routes/push');
 
 var app = express();
