@@ -111,6 +111,7 @@ var facebookSignup = function(body, res, next) {
         }
         else {
             body.usrKey = insertInfo.insertId;
+            body.premium = false;
             facebookLogin(body, res, next);
         }
     });
