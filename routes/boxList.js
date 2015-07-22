@@ -26,10 +26,9 @@ router.get('/:usrKey/boxList', function(req, res, next) {
             console.log(error);
         }
         else {
-            res.json({
-                'result' : true,
-                'object' : boxList
-            });
+            res.json(
+                boxList
+            );
         }
     });
 });
