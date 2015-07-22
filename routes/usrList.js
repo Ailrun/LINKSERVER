@@ -110,7 +110,7 @@ var facebookSignup = function(body, res, next) {
             console.log(error);
         }
         else {
-            body.usrKey = insertInfo.insertid;
+            console.log(insertInfo);
             facebookLogin(body, res, next);
         }
     });
