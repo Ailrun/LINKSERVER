@@ -15,7 +15,9 @@ router.get('/:usrid/:cbid/urllist', function(req, res, next) {
     console.log(req);
     connection.query('select * from url where cbid = ? ', [req.params.cbid], function (error, cursor) {
         console.log(error);
-        res.json(cursor);
+        res.json({
+            'result' : true,
+            'object' : cursor});
     });
 });
 
@@ -46,10 +48,14 @@ router.post('/:usrid/:cbid/addurl', function(req, res, next){
 router.post('/:cbid/removeurl', function(req, res, next) {
     connection.query('delete from url where cbid=? and urlid = ?;', [req.params.cbid, req.body.urlid], function (error, cursor) {
         if (error == undefined) {
-            res.json({result : 'true'});
+            res.json({
+                result : 'true'
+            });
         }
         else {
-            res.status(503).json({result : 'false'});
+            res.status(503).json({
+                result : 'false'
+            });
             console.log(error);
         }
     });

@@ -20,7 +20,7 @@ router.get('/:usrKey/boxList', function(req, res, next) {
     connection.query(boxListQuery, [usrKey], function(error, boxList) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in get box'
             });
             console.log(error);

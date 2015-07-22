@@ -57,11 +57,12 @@ const boxInviteQuery = ('SELECT pushToken\
                      FROM usrList\
                      WHERE usrID=?;');
 router.post('/message/:usrKey/:boxKey/boxInvite', function(req, res, next) {
-  var invitingUsrKey = req.params.usrKey;
-  var invitingBoxKey = req.params.boxKey;
-  var invitedUsrID = req.body.usrID;
-  connection.query(boxInviteQuery, [invitedUsrID], function(error, pushTokenList) {
-
+  // omit 'invit' (inviting, invited ...)
+  var ingUsrKey = req.params.usrKey;
+  var ingBoxKey = req.params.boxKey;
+  var edUsrID = req.body.usrID;
+  connection.query(boxInviteQuery, [edUsrID], function(error, pushTokenList) {
+    
   });
 });
 

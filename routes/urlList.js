@@ -17,20 +17,23 @@ const urlListQuery = ('SELECT U.*, (GL1.urlKey IS NOT NULL)\
                       ( SELECT UofL.urlKey\
                       FROM urlOfBoxList AS UofL\
                       WHERE UofL.boxKey=? )\
-                      ORDER By U.urlDate');
-
+                      ORDER By U.urlDate;');
 router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
     var usrKey = req.params.usrKey;
     var boxKey = req.params.boxKey;
     connection.query(urlListQuery, [usrKey, boxKey], function (error, urlList) {
         if (error != undefined) {
-            res.status(503).json(
-                'there is some error in get url'
-            );
+            res.status(503).json({
+//                'result' : false,
+                'message' : 'there is some error in get url'
+            });
             console.log(error);
         }
         else {
-            res.json(urlList);
+            res.json({
+                'result' : true,
+                'object' : urlList
+            });
         }
     });
 });
@@ -44,14 +47,16 @@ router.post('/:usrid/:cbid/addurl', function(req, res, next){
             }
             else {
                 res.json({
-                    "result": 1,
-                    "urlid": info.insertId,
-                    "address": req.body.address,
-                    "urlname": req.body.urlname,
-                    "urlwriter": req.body.urlwriter,
-                    "urldate": req.body.time,
-                    "urlthumb": req.body.urlthumb
-                });
+                    'result' : true,
+                    'object' : {
+                        "result": 1,
+                        "urlid": info.insertId,
+                        "address": req.body.address,
+                        "urlname": req.body.urlname,
+                        "urlwriter": req.body.urlwriter,
+                        "urldate": req.body.time,
+                        "urlthumb": req.body.urlthumb
+                    }});
             }
         });
     });
