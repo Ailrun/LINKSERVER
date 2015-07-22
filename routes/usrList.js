@@ -98,9 +98,19 @@ var addUser = function(req, res, next) {
             console.log(error);
         }
         else {
+            var usr = {
+                'usrKey' : insertInfo.insertId,
+                'usrID' : usrID,
+                'usrPassword' : usrPassword,
+                'usrName' : usrName,
+                'usrProfile' : usrProfile,
+                'premium' : false,
+                'facebook' : false
+            };
             res.json({
                 'result' : true,
-                'message' : 'SUCCESS'
+                'message' : 'SUCCESS',
+                'object' : usr
             });
         }
     });
@@ -114,9 +124,10 @@ var facebook = function(req, res, next) {
     connection.query(facebookQuery, queryParams, function(error, isAlreadyIn) {
         console.log(req.body);
         if (error != undefined) {
-            res.status(503).json(
-                'there is some error in facebook login while checking ID'
-            );
+            res.status(503).json({
+                'result' : false,
+                'message' : 'there is some error in facebook login while checking ID'
+            });
             console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
@@ -143,9 +154,10 @@ var facebookSignup = function(req, res, next) {
     var queryParams = [usrID, usrPassword, usrName, usrProfile];
     connection.query(facebookSignupQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
-            res.status(503).json(
-                'there is some error in facebook insert User'
-            );
+            res.status(503).json({
+                'result' : false,
+                'message' : 'there is some error in facebook insert User'
+            });
             console.log(error);
         }
         else {
