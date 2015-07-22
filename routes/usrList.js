@@ -9,8 +9,15 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-router.post('/login', function(req, res, next) {
-    connection.query('SELECT * FROM usrList WHERE usrID=? AND usrPassword=?;', [req.body.usrID, req.body.usrPassword], function(error, cursor) {
+router.post('/login', login);
+var loginQuery = ('SELECT *\
+                  FROM usrList\
+                  WHERE usrID=? AND usrPassword=?;');
+var login = function(req, res, next) {
+    var usrID = req.body.usrID;
+    var usrPassword = req.body.usrPassword;
+    var querys = [usrID, usrPassword];
+    connection.query(loginQuery, querys, function(error, cursor) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json(
@@ -21,28 +28,34 @@ router.post('/login', function(req, res, next) {
         else if (cursor.length > 0) {
             if (cursor[0].facebook == false) {
                 res.json({
-                    "result" : true,
-                    "message" : 'SUCCESS'
+                    'result' : true,
+                    'message' : 'SUCCESS',
+                    'object' : cursor[0]
                 });
             }
             else {
                 res.json({
-                    "result" : false,
-                    "message" : 'FACEBOOK'
+                    'result' : false,
+                    'message' : 'FACEBOOK'
                 });
             }
         }
         else {
             res.json({
-                "result" : false,
-                "message" : 'NOID'
-            })
+                'result' : false,
+                'message' : 'NOID'
+            });
         }
     });
-});
+};
 
-router.post('/signup', function(req, res, next) {
-    connection.query('SELECT * FROM usrList WHERE usrID=?;', [req.body.usrID], function(error, isAlreadyIn) {
+router.post('/signup', signup);
+var signupQuery = ('SELECT *\
+                   FROM usrList\
+                   WHERE usrID=?;');
+var signup = function(req, res, next) {
+    var usrID = req.body.usrID;
+    connection.query(signupQuery, [usrID], function(error, isAlreadyIn) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
@@ -52,19 +65,30 @@ router.post('/signup', function(req, res, next) {
             console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
-            res.redirect('/signup/addUser');
+            addUser(req, res, next);
         }
         else {
             res.json({
-                "result" : false,
-                "message" : 'ID'
+                'result' : false,
+                'message' : 'ID'
             });
         }
     });
-});
+};
 
-router.post('/signup/addUser', function(req, res, next) {
-    connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, FALSE);', [req.body.usrID, req.body.usrPassword, req.body.usrName, req.body.usrProfile], function(error, insertInfo) {
+var addUserQuery = ('INSERT INTO usrList\
+                    (usrID, usrPassword, usrName,\
+                    usrProfile, premium, facebook)\
+                    VALUES\
+                    (?, ?, ?,\
+                    ?, FALSE, FALSE);');
+var addUser = function(req, res, next) {
+    var usrID = req.body.usrID;
+    var usrPassword = req.body.usrPassword;
+    var usrName = req.body.usrName;
+    var usrProfile = req.body.usrProfile;
+    var querys = [usrID, usrPassword, usrName, usrProfile];
+    connection.query(addUserQuery, querys, function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
@@ -75,16 +99,20 @@ router.post('/signup/addUser', function(req, res, next) {
         }
         else {
             res.json({
-                "result" : true,
-                "message" : 'SUCCESS'
+                'result' : true,
+                'message' : 'SUCCESS'
             });
         }
     });
-});
+};
 
-router.post('/facebook', function(req, res, next) {
-    var body = req.body;
-    connection.query('SELECT * FROM usrList WHERE usrID=?;', [body.usrID], function(error, isAlreadyIn) {
+router.post('/facebook', facebook);
+var facebookQuery = ('SELECT *\
+                     FROM usrList\
+                     WHERE usrID=?;');
+var facebook = function(req, res, next) {
+    var queryParams = [req.body.usrID];
+    connection.query(facebookQuery, queryParams, function(error, isAlreadyIn) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json(
@@ -93,16 +121,27 @@ router.post('/facebook', function(req, res, next) {
             console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
-            facebookSignup(body, res, next);
+            facebookSignup(req, res, next);
         }
         else {
             facebookLogin(isAlreadyIn[0], res, next);
         }
     });
-});
+};
 
-var facebookSignup = function(body, res, next) {
-    connection.query('INSERT INTO usrList (usrID, usrPassword, usrName, usrProfile, premium, facebook) VALUES (?, ?, ?, ?, FALSE, TRUE)', [body.usrID, body.usrPassword, body.usrName, body.usrProfile], function(error, insertInfo) {
+var facebookSignupQuery = ('INSERT INTO usrList\
+                           (usrID, usrPassword, usrName,\
+                           usrProfile, premium, facebook)\
+                           VALUES\
+                           (?, ?, ?,\
+                           ?, FALSE, TRUE)');
+var facebookSignup = function(req, res, next) {
+    var usrID = req.body.usrID;
+    var usrPassword = req.body.usrPassword;
+    var usrName = req.body.usrName;
+    var usrProfile = req.body.usrProfile;
+    var queryParams = [usrID, usrPassword, usrName, usrProfile];
+    connection.query(facebookSignupQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json(
                 'there is some error in facebook insert User'
@@ -110,12 +149,12 @@ var facebookSignup = function(body, res, next) {
             console.log(error);
         }
         else {
-            body.usrKey = insertInfo.insertId;
-            body.premium = false;
-            facebookLogin(body, res, next);
+            req.body.usrKey = insertInfo.insertId;
+            req.body.premium = false;
+            facebookLogin(req.body, res, next);
         }
     });
-}
+};
 
 var facebookLogin = function(body, res, next) {
     if (body.facebook == true) {
@@ -129,9 +168,9 @@ var facebookLogin = function(body, res, next) {
     else {
         res.json({
             'result' : false,
-            'message' : 'FACEBOOK',
+            'message' : 'FACEBOOK'
         });
     }
-}
+};
 
 module.exports = router;
