@@ -70,7 +70,7 @@ function getTimeStamp() {
 }
 
 const addUrlQuery = ('INSERT INTO urlList\
-                     (urlWriterKey, url, urlThumbnail,\
+                     (urlWriterUsrKey, url, urlThumbnail,\
                      urlTitle)\
                      VALUES (?, ?, ?, ?)');
 var addUrl = function(req, res, next) {
