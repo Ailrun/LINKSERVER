@@ -9,19 +9,23 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-const urlListQuery = ('SELECT U.*, (GL1.urlKey IS NOT NULL)\
-                      FROM urlList AS U\
-                      LEFT JOIN goodList AS GL1 ON U.urlKey=GL1.urlKey\
-                      AND GL1.usrKey=?\
-                      WHERE U.urlKey IN\
-                      ( SELECT UofL.urlKey\
-                      FROM urlOfBoxList AS UofL\
-                      WHERE UofL.boxKey=? )\
-                      ORDER By U.urlDate;');
-router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
+const urlListQuery = ('SELECT U.*,\
+                      SUM(GL.usrKey=?) goodChecked,\
+                      COUNT(GL.usrKey) goodNumber\
+                      FROM\
+                      ( SELECT U.*\
+                      FROM urlOfBoxList UofL\
+                      JOIN urlList U\
+                      ON boxKey=?\
+                      AND U.urlKey=UofL.urlKey ) U\
+                      LEFT JOIN goodList GL ON GL.urlKey=U.urlKey\
+                      GROUP BY U.urlKey\
+                      ORDER BY U.urlDate');
+var usrList = function(req, res, next) {
     var usrKey = req.params.usrKey;
     var boxKey = req.params.boxKey;
-    connection.query(urlListQuery, [usrKey, boxKey], function (error, urlList) {
+    var queryParams = [usrKey, boxKey];
+    connection.query(urlListQuery, queryParams, function (error, urlList) {
         if (error != undefined) {
             res.status(503).json({
 //                'result' : false,
@@ -36,30 +40,68 @@ router.get('/:usrKey/:boxKey/urlList', function(req, res, next) {
             });
         }
     });
-});
+};
+router.get('/:usrKey/:boxKey/urlList', usrList);
 
-router.post('/:usrid/:cbid/addurl', function(req, res, next){
-    connection.query('SELECT MAX(urlid) as max from url;', function(error, cursor){
-        connection.query('INSERT INTO url (urlid, urlname, urlthumbnails, address, usrid, cbid) values(?, ?, ?, ?, ?, ?);', [cursor[0].max+1, req.body.urlname, req.body.urlthumb, req.body.address, req.params.usrid, req.params.cbid], function(error, info) {
-            if (error != undefined) {
-                res.sendStatus(503);
-                console.log(error);
-            }
-            else {
-                res.json({
-                    'result' : true,
-                    'object' : {
-                        "result": 1,
-                        "urlid": info.insertId,
-                        "address": req.body.address,
-                        "urlname": req.body.urlname,
-                        "urlwriter": req.body.urlwriter,
-                        "urldate": req.body.time,
-                        "urlthumb": req.body.urlthumb
-                    }});
-            }
-        });
+function leadingZeros(n, digits) {
+    var zero = '';
+    n = n.toString();
+
+    if (n.length < digits) {
+        for (i = 0; i < digits - n.length; i++)
+            zero += '0';
+    }
+    return zero + n;
+}
+
+function getTimeStamp() {
+    var d = new Date();
+
+    var s =
+            leadingZeros(d.getFullYear(), 4) + '-' +
+            leadingZeros(d.getMonth() + 1, 2) + '-' +
+            leadingZeros(d.getDate(), 2) + ' ' +
+
+            leadingZeros(d.getHours(), 2) + ':' +
+            leadingZeros(d.getMinutes(), 2) + ':' +
+            leadingZeros(d.getSeconds(), 2);
+
+    return s;
+}
+
+const addUrlQuery = ('INSERT INTO urlList\
+                     (urlWriterKey, url, urlThumbnail,\
+                     urlTitle)\
+                     VALUES (?, ?, ?, ?)');
+var addUrl = function(req, res, next) {
+    var usrKey = req.params.usrKey;
+    var url = req.body.url;
+    var urlThumbnail = req.body.urlThumbnail;
+    var urlTitle = req.body.urlTitle;
+    var queryParams = [usrKey, url, urlThumbnail, urlTitle];
+    connection.query(addUrlQuery, queryParams, function(error, insertInfo) {
+        if (error != undefined) {
+            res.status(503).json({
+                //'result' : false,
+                'message' : 'there is some error in add url'
+            });
+        }
+        else {
+            var object = {
+                'urlKey' : insertInfo.insertId,
+                'url' : url,
+                'urlThumbnail' : urlThumbnail,
+                'urlTitle' : urlTitle,
+                'urlDate' : getTimeStamp()
+            };
+            console.log(object);
+            res.json({
+                'result' : true,
+                'object' : object
+            });
+        }
     });
-});
+}
+router.post('/:usrKey/:boxKey/addUrl', addUrl);
 
 module.exports = router;
