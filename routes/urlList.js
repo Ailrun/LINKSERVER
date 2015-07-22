@@ -85,6 +85,7 @@ var addUrl = function(req, res, next) {
                 //'result' : false,
                 'message' : 'there is some error in add url'
             });
+            console.log(error);
         }
         else {
             var object = {
