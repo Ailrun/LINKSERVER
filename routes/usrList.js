@@ -9,7 +9,6 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-router.post('/login', login);
 var loginQuery = ('SELECT *\
                   FROM usrList\
                   WHERE usrID=? AND usrPassword=?;');
@@ -48,8 +47,8 @@ var login = function(req, res, next) {
         }
     });
 };
+router.post('/login', login);
 
-router.post('/signup', signup);
 var signupQuery = ('SELECT *\
                    FROM usrList\
                    WHERE usrID=?;');
@@ -75,6 +74,7 @@ var signup = function(req, res, next) {
         }
     });
 };
+router.post('/signup', signup);
 
 var addUserQuery = ('INSERT INTO usrList\
                     (usrID, usrPassword, usrName,\
@@ -106,7 +106,6 @@ var addUser = function(req, res, next) {
     });
 };
 
-router.post('/facebook', facebook);
 var facebookQuery = ('SELECT *\
                      FROM usrList\
                      WHERE usrID=?;');
@@ -128,6 +127,7 @@ var facebook = function(req, res, next) {
         }
     });
 };
+router.post('/facebook', facebook);
 
 var facebookSignupQuery = ('INSERT INTO usrList\
                            (usrID, usrPassword, usrName,\
