@@ -73,7 +73,7 @@ const addUrlQuery = ('INSERT INTO urlList\
                      (urlWriterUsrKey, url, urlThumbnail,\
                      urlTitle)\
                      VALUES (?, ?, ?, ?)');
-var addUrl = function(req, res, next) {
+function addUrl(req, res, next) {
     var usrKey = req.params.usrKey;
     var url = req.body.url;
     var urlThumbnail = req.body.urlThumbnail;
