@@ -110,7 +110,7 @@ var facebookSignup = function(body, res, next) {
             console.log(error);
         }
         else {
-            console.log(insertInfo);
+            body.usrKey = insertInfo.insertId;
             facebookLogin(body, res, next);
         }
     });
@@ -118,6 +118,7 @@ var facebookSignup = function(body, res, next) {
 
 var facebookLogin = function(body, res, next) {
     if (body.facebook == true) {
+        console.log(body);
         res.json({
             'result' : true,
             'message' : 'SUCCESS',
@@ -128,7 +129,6 @@ var facebookLogin = function(body, res, next) {
         res.json({
             'result' : false,
             'message' : 'FACEBOOK',
-            'object' : body
         });
     }
 }
