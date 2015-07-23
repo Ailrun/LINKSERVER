@@ -52,5 +52,6 @@ function addBox(req, res, next) {
         }
     });
 }
+router.post(addBoxURL, addBox);
 
 module.exports = router;
