@@ -10,17 +10,18 @@ var connection = mysql.createConnection({
 });
 
 const boxListURL = '/:usrKey/boxList';
-const boxListQuery = ('SELECT BL.boxKey, BL.boxName, BofL.boxIndex\
+const boxListQuery = ('SELECT BL.boxKey, BofL.boxName, BofL.boxIndex\
                       FROM boxOfUsrList AS BofL\
                       JOIN boxList AS BL ON BL.boxKey=BofL.boxKey\
                       WHERE BofL.usrKey=?\
                       ORDER BY BofL.boxIndex;');
 function boxList(req, res, next) {
     var usrKey = req.params.usrKey;
-    connection.query(boxListQuery, [usrKey], function(error, boxList) {
+    var queryParams = [usrKey];
+    connection.query(boxListQuery, queryParams, function(error, boxList) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in get box'
             });
             console.log(error);
@@ -36,16 +37,12 @@ function boxList(req, res, next) {
 router.get(boxListURL, boxList);
 
 const addBoxURL = '/:usrKey/addBox';
-const addBoxQuery = ('INSERT INTO boxList\
-                     (boxName)\
-                     VALUES (?);');
+const addBoxQuery = ('INSERT INTO boxList;');
 function addBox(req, res, next) {
-    var boxName = req.body.boxName;
-    var queryParams = [boxName];
-    connection.query(addBoxQuery, queryParams, function(error, insertInfo) {
+    connection.query(addBoxQuery, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in add box'
             });
             console.log(error);
@@ -58,17 +55,18 @@ function addBox(req, res, next) {
     });
 }
 const addBoxOfUsrQuery = ('INSERT INTO boxOfUsrList\
-                          (boxKey, usrKey, boxIndex)\
-                          VALUES (?, ?, ?);');
+                          (boxKey, usrKey, boxName, boxIndex)\
+                          VALUES (?, ?, ?, ?);');
 function addBoxOfUsr(req, res, next) {
     var usrKey = req.params.usrKey;
     var boxKey = req.body.boxKey;
+    var boxName = req.body.boxName;
     var boxIndex = req.body.boxIndex;
-    var queryParams = [boxKey, usrKey, boxIndex];
+    var queryParams = [boxKey, usrKey, boxName, boxIndex];
     connection.query(addBoxOfUsrQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in add box of user'
             });
             console.log(error);
@@ -94,7 +92,7 @@ function removeBox(req, res, next) {
     connection.query(removeBoxQuery, queryParams, function(error, usrList) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in remove box'
             });
         }
@@ -123,7 +121,7 @@ function removeBoxOfUsr(req, res, next) {
     connection.query(removeBoxOfUsrQuery, queryParams, function(error, deleteInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in remove box of a usr'
             });
         }
@@ -143,7 +141,7 @@ function removeBoxAtAll(req, res, next) {
     connection.query(removeBoxAtAllQuery, queryParams, function(error, deleteInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in remove box at all'
             });
         }
@@ -157,5 +155,29 @@ function removeBoxAtAll(req, res, next) {
 router.post(removeBoxURL, removeBox);
 
 const editBoxURL = '/:usrKey/editBox';
+const editBoxQuery = ('UPDATE boxOfUsrList\
+                      SET boxName=?\
+                      WHERE usrKey=?\
+                      AND boxKey=?;');
+function editBox(req, res, next) {
+    var usrKey = req.params.usrKey;
+    var boxKey = req.body.boxKey;
+    var boxName = req.body.boxName;
+    var queryParams = [boxName, usrKey, boxKey];
+    connection.query(editBoxQuery, queryParams, function(error, updateInfo) {
+        if (error != undefined) {
+            res.status(503).json({
+//                'result' : false,
+                'message' : 'there is some error in edit box'
+            });
+        }
+        else {
+            res.json({
+                'result' : true,
+                'object' : req.body
+            });
+        }
+    });
+}
 
 module.exports = router;
