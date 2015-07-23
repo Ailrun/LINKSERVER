@@ -9,6 +9,7 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
+const loginURL = '/login';
 const loginQuery = ('SELECT *\
                   FROM usrList\
                   WHERE usrID=? AND usrPassword=?;');
@@ -47,8 +48,9 @@ function login(req, res, next) {
         }
     });
 }
-router.post('/login', login);
+router.post(loginURL, login);
 
+const signupURL = '/signup';
 const signupQuery = ('SELECT *\
                    FROM usrList\
                    WHERE usrID=?;');
@@ -58,7 +60,7 @@ function signup(req, res, next) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in signup while checking ID'
             });
             console.log(error);
@@ -74,7 +76,7 @@ function signup(req, res, next) {
         }
     });
 }
-router.post('/signup', signup);
+router.post(signupURL, signup);
 
 const addUsrQuery = ('INSERT INTO usrList\
                     (usrID, usrPassword, usrName,\
@@ -92,7 +94,7 @@ function addUsr(req, res, next) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in signup while insert User'
             });
             console.log(error);
@@ -116,6 +118,7 @@ function addUsr(req, res, next) {
     });
 }
 
+const facebookURL = '/facebook';
 const facebookQuery = ('SELECT *\
                      FROM usrList\
                      WHERE usrID=?;');
@@ -125,7 +128,7 @@ function facebook(req, res, next) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in facebook login while checking ID'
             });
             console.log(error);
@@ -138,14 +141,14 @@ function facebook(req, res, next) {
         }
     });
 }
-router.post('/facebook', facebook);
+router.post(facebookURL, facebook);
 
 const facebookSignupQuery = ('INSERT INTO usrList\
                            (usrID, usrPassword, usrName,\
                            usrProfile, premium, facebook)\
                            VALUES\
                            (?, ?, ?,\
-                           ?, FALSE, TRUE)');
+                           ?, FALSE, TRUE);');
 function facebookSignup(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
@@ -155,7 +158,7 @@ function facebookSignup(req, res, next) {
     connection.query(facebookSignupQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in facebook insert User'
             });
             console.log(error);

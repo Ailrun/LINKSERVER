@@ -9,13 +9,13 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
+const boxListURL = '/:usrKey/boxList';
 const boxListQuery = ('SELECT BL.boxKey, BL.boxName, BofL.boxIndex\
                       FROM boxOfUsrList AS BofL\
                       JOIN boxList AS BL ON BL.boxKey=BofL.boxKey\
                       WHERE BofL.usrKey=?\
                       ORDER BY BofL.boxIndex;');
-
-router.get('/:usrKey/boxList', function(req, res, next) {
+function boxList(req, res, next) {
     var usrKey = req.params.usrKey;
     connection.query(boxListQuery, [usrKey], function(error, boxList) {
         if (error != undefined) {
@@ -32,6 +32,26 @@ router.get('/:usrKey/boxList', function(req, res, next) {
             });
         }
     });
-});
+}
+router.get(boxListURL, boxList);
+
+const addBoxURL = '/:usrKey/addBox';
+const addBoxQuery = ('INSERT INTO boxList\
+                     (boxKey, boxName)\
+                     VALUES (?, ?);');
+function addBox(req, res, next) {
+    var usrKey = req.params.usrKey;
+    var boxKey = req.body.boxKey;
+    var boxName = req.body.boxName;
+    var queryParams = [boxKey, boxName];
+    connection.query(addBoxQuery, queryParams, function(error, insertInfo) {
+        if (error != undefined) {
+            console.log(error);
+        }
+        else {
+            console.log(insertInfo);
+        }
+    });
+}
 
 module.exports = router;
