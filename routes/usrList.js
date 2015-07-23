@@ -17,7 +17,7 @@ function login(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
     var querys = [usrID, usrPassword];
-    connection.query(loginQuery, querys, function(error, cursor) {
+    connection.query(loginQuery, querys, function(error, usrList) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json(
@@ -25,12 +25,12 @@ function login(req, res, next) {
             );
             console.log(error);
         }
-        else if (cursor.length > 0) {
-            if (cursor[0].facebook == false) {
+        else if (usrList.length > 0) {
+            if (usrList[0].facebook == false) {
                 res.json({
                     'result' : true,
                     'message' : 'SUCCESS',
-                    'object' : cursor[0]
+                    'object' : usrList[0]
                 });
             }
             else {
@@ -51,7 +51,7 @@ function login(req, res, next) {
 router.post(loginURL, login);
 
 const signupURL = '/signup';
-const signupQuery = ('SELECT *\
+const signupQuery = ('SELECT 1\
                    FROM usrList\
                    WHERE usrID=?;');
 function signup(req, res, next) {
