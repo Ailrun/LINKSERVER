@@ -12,16 +12,12 @@ var connection = mysql.createConnection({
 const urlListQuery = ('SELECT U.*,\
                       SUM(GL.usrKey=?) goodChecked,\
                       COUNT(GL.usrKey) goodNumber\
-                      FROM\
-                      ( SELECT U.*\
-                      FROM urlOfBoxList UofL\
-                      JOIN urlList U\
-                      ON boxKey=?\
-                      AND U.urlKey=UofL.urlKey ) U\
+                      FROM urlList U\
                       LEFT JOIN goodList GL ON GL.urlKey=U.urlKey\
+                      WHERE U.boxKey=?\
                       GROUP BY U.urlKey\
                       ORDER BY U.urlDate');
-var usrList = function(req, res, next) {
+function usrList(req, res, next) {
     var usrKey = req.params.usrKey;
     var boxKey = req.params.boxKey;
     var queryParams = [usrKey, boxKey];
@@ -40,7 +36,7 @@ var usrList = function(req, res, next) {
             });
         }
     });
-};
+}
 router.get('/:usrKey/:boxKey/urlList', usrList);
 
 function leadingZeros(n, digits) {
@@ -53,7 +49,6 @@ function leadingZeros(n, digits) {
     }
     return zero + n;
 }
-
 function getTimeStamp() {
     var d = new Date();
 
@@ -104,5 +99,7 @@ function addUrl(req, res, next) {
     });
 }
 router.post('/:usrKey/:boxKey/addUrl', addUrl);
+
+
 
 module.exports = router;

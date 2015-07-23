@@ -9,10 +9,10 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-var loginQuery = ('SELECT *\
+const loginQuery = ('SELECT *\
                   FROM usrList\
                   WHERE usrID=? AND usrPassword=?;');
-var login = function(req, res, next) {
+function login(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
     var querys = [usrID, usrPassword];
@@ -46,13 +46,13 @@ var login = function(req, res, next) {
             });
         }
     });
-};
+}
 router.post('/login', login);
 
-var signupQuery = ('SELECT *\
+const signupQuery = ('SELECT *\
                    FROM usrList\
                    WHERE usrID=?;');
-var signup = function(req, res, next) {
+function signup(req, res, next) {
     var usrID = req.body.usrID;
     connection.query(signupQuery, [usrID], function(error, isAlreadyIn) {
         console.log(req.body);
@@ -64,7 +64,7 @@ var signup = function(req, res, next) {
             console.log(error);
         }
         else if (isAlreadyIn.length == 0) {
-            addUser(req, res, next);
+            addUsr(req, res, next);
         }
         else {
             res.json({
@@ -73,22 +73,22 @@ var signup = function(req, res, next) {
             });
         }
     });
-};
+}
 router.post('/signup', signup);
 
-var addUserQuery = ('INSERT INTO usrList\
+const addUsrQuery = ('INSERT INTO usrList\
                     (usrID, usrPassword, usrName,\
                     usrProfile, premium, facebook)\
                     VALUES\
                     (?, ?, ?,\
                     ?, FALSE, FALSE);');
-var addUser = function(req, res, next) {
+function addUsr(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
     var usrName = req.body.usrName;
     var usrProfile = req.body.usrProfile;
     var querys = [usrID, usrPassword, usrName, usrProfile];
-    connection.query(addUserQuery, querys, function(error, insertInfo) {
+    connection.query(addUsrQuery, querys, function(error, insertInfo) {
         console.log(req.body);
         if (error != undefined) {
             res.status(503).json({
@@ -114,12 +114,12 @@ var addUser = function(req, res, next) {
             });
         }
     });
-};
+}
 
-var facebookQuery = ('SELECT *\
+const facebookQuery = ('SELECT *\
                      FROM usrList\
                      WHERE usrID=?;');
-var facebook = function(req, res, next) {
+function facebook(req, res, next) {
     var queryParams = [req.body.usrID];
     connection.query(facebookQuery, queryParams, function(error, isAlreadyIn) {
         console.log(req.body);
@@ -137,16 +137,16 @@ var facebook = function(req, res, next) {
             facebookLogin(isAlreadyIn[0], res, next);
         }
     });
-};
+}
 router.post('/facebook', facebook);
 
-var facebookSignupQuery = ('INSERT INTO usrList\
+const facebookSignupQuery = ('INSERT INTO usrList\
                            (usrID, usrPassword, usrName,\
                            usrProfile, premium, facebook)\
                            VALUES\
                            (?, ?, ?,\
                            ?, FALSE, TRUE)');
-var facebookSignup = function(req, res, next) {
+function facebookSignup(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
     var usrName = req.body.usrName;
@@ -166,9 +166,9 @@ var facebookSignup = function(req, res, next) {
             facebookLogin(req.body, res, next);
         }
     });
-};
+}
 
-var facebookLogin = function(body, res, next) {
+function facebookLogin(body, res, next) {
     if (body.facebook == true) {
         console.log(body);
         res.json({
@@ -183,6 +183,6 @@ var facebookLogin = function(body, res, next) {
             'message' : 'FACEBOOK'
         });
     }
-};
+}
 
 module.exports = router;
