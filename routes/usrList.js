@@ -17,8 +17,9 @@ function login(req, res, next) {
     var usrID = req.body.usrID;
     var usrPassword = req.body.usrPassword;
     var querys = [usrID, usrPassword];
+    console.log(req.body);
     connection.query(loginQuery, querys, function(error, usrList) {
-        console.log(req.usrList);
+        console.log(usrList);
         if (error != undefined) {
             res.status(503).json(
                 'there is some error in login'
