@@ -18,7 +18,7 @@ function login(req, res, next) {
     var usrPassword = req.body.usrPassword;
     var querys = [usrID, usrPassword];
     connection.query(loginQuery, querys, function(error, usrList) {
-        console.log(req.body);
+        console.log(req.usrList);
         if (error != undefined) {
             res.status(503).json(
                 'there is some error in login'
@@ -26,7 +26,7 @@ function login(req, res, next) {
             console.log(error);
         }
         else if (usrList.length > 0) {
-            if (usrList[0].facebook == false) {
+            if (!usrList[0].facebook) {
                 res.json({
                     'result' : true,
                     'message' : 'SUCCESS',
