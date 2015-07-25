@@ -159,7 +159,7 @@ router.post('/message', function(req, res, next) {
     }
   });
 
-  sender.send(message, registrationIds, 4, function (err, result) {
+  sender.send(message, null, 4, function (err, result) {
     console.log(result);
   });
 
