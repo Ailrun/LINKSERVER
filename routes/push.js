@@ -36,8 +36,9 @@ const registerQuery = ('UPDATE usrList\
                        SET pushToken=?\
                        WHERE usrID=?;');
 router.post('/register/:usrKey/:token', function(req, res, next) {
-  var token = req.params.token;
-  var usrKey = req.params.token;
+  var usrKey = req.params.usrKey;
+  var token = req.body;
+  console.log(req.body);
   connection.query(registerQuery, [token, usrKey], function(error, insertInfo) {
     if (error != undefined) {
       res.status(503).json({
