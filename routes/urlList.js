@@ -9,8 +9,44 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-const urlListURL = '/:usrKey/:boxKey/urlList';
-const urlListQuery = ('SELECT U.*,\
+const allUrlListURL = '/:usrKey/:urlStart/:urlNum/allUrlList';
+const allUrlListQuery = ('SELECT U.*,\
+                         SUM(GL.usrKey=?) goodChecked,\
+                         COUNT(GL.usrKey) goodNumber\
+                         FROM urlList U\
+                         LEFT JOIN goodList GL ON GL.urlKey=U.urlKey\
+                         WHERE EXISTS (SELECT 1\
+                         FROM boxOfUsrList BofU\
+                         WHERE U.boxKey=BofU.boxKey\
+                         AND BofU.usrKey=?)\
+                         GROUP BY U.urlKey\
+                         ORDER BY U.timestamp\
+                         LIMIT ?, ?;');
+function allUrlList(req, res, next) {
+    var usrKey = req.params.usrKey;
+    var urlStart = req.params.urlStart;
+    var urlNum = req.params.urlNum;
+    var queryParams = [usrKey, usrKey, urlStart, urlNum];
+    connection.query(allUrlListQuery, queryParams, function(error, urlList) {
+        if (error != undefined) {
+            res.status(503).json({
+//                'result' : false,
+                'message' : 'there is some error in add good'
+            });
+            console.log(error);
+        }
+        else {
+            res.json({
+                'result' : true,
+                'object' : urlList
+            });
+        }
+    });
+}
+router.get(allUrlListURL, allUrlList);
+
+const boxUrlListURL = '/:usrKey/:boxKey/boxUrlList';
+const boxUrlListQuery = ('SELECT U.*,\
                       SUM(GL.usrKey=?) goodChecked,\
                       COUNT(GL.usrKey) goodNumber\
                       FROM urlList U\
@@ -18,11 +54,11 @@ const urlListQuery = ('SELECT U.*,\
                       WHERE U.boxKey=?\
                       GROUP BY U.urlKey\
                       ORDER BY U.urlDate;');
-function usrList(req, res, next) {
+function boxUrlList(req, res, next) {
     var usrKey = req.params.usrKey;
     var boxKey = req.params.boxKey;
     var queryParams = [usrKey, boxKey];
-    connection.query(urlListQuery, queryParams, function (error, urlList) {
+    connection.query(boxUrlListQuery, queryParams, function (error, urlList) {
         if (error != undefined) {
             res.status(503).json({
 //                'result' : false,
@@ -38,7 +74,7 @@ function usrList(req, res, next) {
         }
     });
 }
-router.get(urlListURL, usrList);
+router.get(boxUrlListURL, boxUrlList);
 
 function leadingZeros(n, digits) {
     var zero = '';
@@ -154,7 +190,7 @@ function editUrl(req, res, next) {
                 'result' : true
             });
             console.log(updateInfo);
-        }
+          }
     });
 }
 router.post(editUrlURL, editUrl);

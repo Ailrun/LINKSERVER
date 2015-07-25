@@ -68,9 +68,7 @@ function addBoxUsr(req, res, next){
             });
         }
         else {
-            res.json({
-                'result' : true
-            });
+            res.redirect()
         }
     });
 }

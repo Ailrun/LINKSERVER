@@ -39,7 +39,11 @@ router.get(boxListURL, boxList);
 const addBoxURL = '/:usrKey/addBox';
 const addBoxQuery = ('INSERT INTO boxList;');
 function addBox(req, res, next) {
-    connection.query(addBoxQuery, function(error, insertInfo) {
+    var usrKey = req.params.usrKey;
+    var boxName = req.body.boxName;
+    var boxIndex = req.body.boxIndex;
+    var queryParams = [usrKey, boxName, boxIndex];
+    connection.query(addBoxQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json({
 //                'result' : false,

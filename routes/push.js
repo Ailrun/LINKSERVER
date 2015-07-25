@@ -35,7 +35,7 @@ router.get('/register/all', function(req, res, next) {
 const registerQuery = ('UPDATE usrList\
                        SET pushToken=?\
                        WHERE usrID=?;');
-router.get('/register/:usrKey/:token', function(req, res, next) {
+router.post('/register/:usrKey/:token', function(req, res, next) {
   var token = req.params.token;
   var usrKey = req.params.token;
   connection.query(registerQuery, [token, usrKey], function(error, insertInfo) {
@@ -53,30 +53,95 @@ router.get('/register/:usrKey/:token', function(req, res, next) {
   });
 });
 
-const boxInviteQuery = ('SELECT pushToken\
-                     FROM usrList\
-                     WHERE usrID=?;');
-router.post('/message/:usrKey/:boxKey/boxInvite', function(req, res, next) {
+const boxInviteURL = '/message/:usrKey/:boxKey/boxInvite';
+const boxInviteQuery = ('SELECT U1.usrName, B.boxName, U2.pushToken\
+                        FROM usrList U2\
+                        JOIN usrList U1 ON U1.usrKey=?\
+                        JOIN boxList B ON B.boxKey=?\
+                        WHERE U2.usrID=?;');
+function boxInvite(req, res, next) {
   var invitingUsrKey = req.params.usrKey;
   var invitingBoxKey = req.params.boxKey;
   var invitedUsrID = req.body.usrID;
-  connection.query(boxInviteQuery, [invitedUsrID], function(error, pushTokenList) {
+  var queryParams = [invitingUsrKey, invitingBoxKey, invitedUsrID];
+  connection.query(boxInviteQuery, queryParams, function(error, inviteData) {
+    if (error != undefined) {
+      res.json({
+//        'result' : false,
+        'message' : 'there is some error in box inviting'
+      });
+    }
+    else {
+      var message = new gcm.Message({
+        collapseKey: 'LinkBox',
+        delayWhileIdle: true,
+        timeToLive: 3,
+        data: {
+          result : true,
+          object : {
+            usrName: inviteData.usrName,
+            boxName: inviteData.boxName,
+            message: req.body.message
+          }
+        }
+      });
+
+      sender.send(message, inviteData.pushToken, 4, function (err, result) {
+        console.log(result);
+      });
+
+      res.status(200).send("Message Sent !!");
+    }
+  });
+}
+router.post(boxInviteURL, boxInvite);
+
+const urlAddedURL = '/message/:usrKey/:boxKey/urlAdded';
+const urlAddedQuery = ('SELECT U1.usrName, BofU1.boxName, U2.pushToken\
+                       FROM usrList U2\
+                       JOIN usrList U1 ON U1.usrKey=?\
+                       JOIN boxOfUsrList BofU1 ON BofU1.boxKey=?\
+                       AND BofU1.usrKey=U2.usrKey\
+                       WHERE EXISTS\
+                       (SELECT 1\
+                       FROM boxOfUsrList BofU\
+                       WHERE BofU.boxKey=?\
+                       AND BofU.usrKey=U2.usrKey);');
+function urlAdded(req, res, next) {
+  var invitingUsrKey = req.params.usrKey;
+  var invitingBoxKey = req.params.boxKey;
+  var queryParams = [invitingUsrKey, invitingBoxKey];
+  connection.query(urlAddedQuery, queryParams, function(error, inviteData) {
+    if (error != undefined) {
+      res.json({
+//        'result' : false,
+        'message' : 'there is some error in url adding'
+      });
+    }
+    else {
+      var message = new gcm.Message({
+        collapseKey: 'LinkBox',
+        delayWhileIdle: true,
+        timeToLive: 3,
+        data: {
+          result : true,
+          object : {
+            urlName : req.body.urlName,
+            inviteDatas : inviteData
+          }
+        }
+      });
+
+      sender.send(message, inviteData.pushToken, 4, function (err, result) {
+        console.log(result);
+      });
+
+      res.status(200).send("Message Sent !!");
+    }
 
   });
-});
-
-const urlAddedQuery = ('SELECT pushToken\
-                       FROM usrList\
-                       WHERE usrKey IN\
-                       (SELECT usrKey\
-                       FROM boxOfUsrList\
-                       WHERE boxKey=?);');
-router.post('/message/:usrKey/:boxKey/urlAdded', function(req, res, next) {
-  var boxKey = req.params.boxKey;
-  connection.query(urlAddedQuery, function(error, pushTokenList) {
-
-  });
-});
+}
+router.post(urlAddedURL, urlAdded);
 
 router.get('/message', function(req, res, next) {
   res.render('send');

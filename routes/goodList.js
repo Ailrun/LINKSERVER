@@ -46,7 +46,7 @@ function addGoodList(req, res, next) {
     connection.query(addGoodListQuery, queryParams, function(error, insertInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in add good to list'
             });
         }
@@ -72,7 +72,7 @@ function removeGood(req, res, next) {
     connection.query(removeGoodQuery, queryParams, function(error, deleteInfo) {
         if (error != undefined) {
             res.status(503).json({
-                'result' : false,
+//                'result' : false,
                 'message' : 'there is some error in remove good``'
             });
         }
