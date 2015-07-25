@@ -35,7 +35,7 @@ router.get('/register/all', function(req, res, next) {
 const registerQuery = ('UPDATE usrList\
                        SET pushToken=?\
                        WHERE usrID=?;');
-router.post('/register/:usrKey/:token', function(req, res, next) {
+router.post('/register/:usrKey', function(req, res, next) {
   var usrKey = req.params.usrKey;
   var token = req.body;
   console.log(req.body);
