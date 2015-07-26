@@ -80,9 +80,10 @@ function boxInvite(req, res, next) {
         data: {
           result : true,
           object : {
-            usrName: inviteData.usrName,
-            boxName: inviteData.boxName,
-            message: req.body.message
+            type : "boxInvite",
+            usrName : inviteData.usrName,
+            boxName : inviteData.boxName,
+            message : req.body.message
           }
         }
       });
@@ -116,7 +117,7 @@ function urlAdded(req, res, next) {
     if (error != undefined) {
       res.json({
 //        'result' : false,
-        'message' : 'there is some error in url adding'
+        'message' : 'there is some error in broadcast url'
       });
     }
     else {
@@ -127,22 +128,53 @@ function urlAdded(req, res, next) {
         data: {
           result : true,
           object : {
+            type : "urlAdded",
             urlName : req.body.urlName,
             inviteDatas : inviteData
           }
         }
       });
-
-      sender.send(message, inviteData.pushToken, 4, function (err, result) {
+      sender.send(message, inviteData.pushToken, 4, function (error, result) {
         console.log(result);
       });
-
       res.status(200).send("Message Sent !!");
     }
-
   });
 }
 router.post(urlAddedURL, urlAdded);
+
+const goodAddedURL = '/message/:usrKey/:urlKey';
+const goodAddedQuery = ('');
+function goodAdded(req, res, next) {
+  var queryParams = [];
+  connection.query(goodAddedQuery, queryParams, function(error, goodData) {
+    if (error != undefined) {
+      res.status(503).json({
+//        'result' : false,
+        'message' : 'there is some error in broadcast good'
+      });
+    }
+    else {
+      var message = new gcm.Message({
+        collapseKey: 'LinkBox',
+        delayWhileIdle: true,
+        timeToLive: 3,
+        data: {
+          result : true,
+          object : {
+            type : 'goodAdded',
+            urlName : req.body.urlName,
+            inviteDatas : goodData
+          }
+        }
+      });
+      sender.send(message, goodData.pushToken, 4, function (error, result) {
+        console.log(result);
+      });
+      res.status(200).send("Message Sent !!");
+    }
+  });
+}
 
 router.get('/message', function(req, res, next) {
   res.render('send');
