@@ -55,10 +55,11 @@ router.post('/register/:usrKey', function(req, res, next) {
 });
 
 const boxInviteURL = '/message/:usrKey/:boxKey/boxInvite';
-const boxInviteQuery = ('SELECT U1.usrName, B.boxName, U2.pushToken\
+const boxInviteQuery = ('SELECT U1.usrName, BofU.boxName, U2.pushToken\
                         FROM usrList U2\
                         JOIN usrList U1 ON U1.usrKey=?\
-                        JOIN boxList B ON B.boxKey=?\
+                        JOIN boxOfUsrList BofU ON BofU.boxKey=?\
+                        AND BofU.usrKey=U1.usrKey\
                         WHERE U2.usrID=?;');
 function boxInvite(req, res, next) {
   var invitingUsrKey = req.params.usrKey;
