@@ -67,10 +67,11 @@ function boxInvite(req, res, next) {
   var queryParams = [invitingUsrKey, invitingBoxKey, invitedUsrID];
   connection.query(boxInviteQuery, queryParams, function(error, inviteData) {
     if (error != undefined) {
-      res.json({
+      res.status(503).json({
 //        'result' : false,
         'message' : 'there is some error in box inviting'
       });
+      console.log(error);
     }
     else {
       var message = new gcm.Message({
