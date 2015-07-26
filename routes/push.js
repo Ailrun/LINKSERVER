@@ -83,14 +83,14 @@ function boxInvite(req, res, next) {
           result : true,
           object : {
             type : "boxInvite",
-            usrName : inviteData.usrName,
-            boxName : inviteData.boxName,
+            usrName : inviteData[0].usrName,
+            boxName : inviteData[0].boxName,
             message : req.body.message
           }
         }
       });
 
-      sender.send(message, inviteData.pushToken, 4, function (err, result) {
+      sender.send(message, inviteData[0].pushToken, 4, function (err, result) {
         console.log(result);
       });
 
