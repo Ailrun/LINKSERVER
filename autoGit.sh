@@ -4,7 +4,7 @@
 pushall(){
     find . -regex "\./\([^\.]\).*[^~]$"| xargs git add
     git commit -m "$1"
-    git push origin newserver
+    git push origin newServer
 }
 
 push(){
@@ -16,7 +16,7 @@ push(){
     fi
     git add fileList
     git commit -m "$1"
-    git push origin newserver
+    git push origin newServer
 }
 
 pull(){
