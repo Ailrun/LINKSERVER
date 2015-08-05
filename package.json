@@ -1,6 +1,6 @@
 {
-  "name": "server",
-  "version": "0.0.0",
+  "name": "linkserver",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"

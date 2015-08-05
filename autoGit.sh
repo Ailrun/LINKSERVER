@@ -26,12 +26,12 @@ pull(){
 usage(){
     printf "usage : $0\n"
     printf " $0 [option]\n\n"
-    printf "Options : (Use only One)\n"
+    printf "Options : (Use only One)"
     printf "  -psa, --pushall [COMMIT_MESSAGE]\t push all files with COMMIT_MESSAGE\n"
     printf "  -ps,  --push [COMMIT_MESSAGE]\t\t push listed files from input\n"
     printf "\t\t\t\t\t with COMMIT_MESSAGE\n"
     printf "  -pla, --pullall\t\t\t pull all files from remote\n"
-    printf "  -pl,  --pull\t\t\t\t same with --pullall\n\n"
+    printf "  -pl,  --pull\t\t\t same with --pullall"
     exit
 }
 

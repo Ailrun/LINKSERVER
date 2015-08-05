@@ -1,6 +1,7 @@
 var express = require('express');
 var mysql = require('mysql');
 var router = express.Router();
+var tools = require('tools');
 
 var connection = mysql.createConnection({
     'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
@@ -9,190 +10,55 @@ var connection = mysql.createConnection({
     'database' : 'LINKBOX'
 });
 
-const allUrlListURL = '/:usrKey/:urlStart/:urlNum/allUrlList';
-const allUrlListQuery = ('SELECT U.*,\
-                         SUM(GL.usrKey=?) goodChecked,\
-                         COUNT(GL.usrKey) goodNumber\
-                         FROM urlList U\
-                         LEFT JOIN goodList GL ON GL.urlKey=U.urlKey\
-                         WHERE EXISTS (SELECT 1\
-                         FROM boxOfUsrList BofU\
-                         WHERE U.boxKey=BofU.boxKey\
-                         AND BofU.usrKey=?)\
-                         GROUP BY U.urlKey\
-                         ORDER BY U.timestamp\
-                         LIMIT ?, ?;');
-function allUrlList(req, res, next) {
-    var usrKey = req.params.usrKey;
-    var urlStart = req.params.urlStart;
-    var urlNum = req.params.urlNum;
-    var queryParams = [usrKey, usrKey, urlStart, urlNum];
-    connection.query(allUrlListQuery, queryParams, function(error, urlList) {
-        if (error != undefined) {
-            res.status(503).json({
-//                'result' : false,
-                'message' : 'there is some error in add good'
-            });
-            console.log(error);
-        }
-        else {
-            res.json({
-                'result' : true,
-                'object' : urlList
-            });
-        }
-    });
-}
-router.get(allUrlListURL, allUrlList);
 
-const boxUrlListURL = '/:usrKey/:boxKey/boxUrlList';
-const boxUrlListQuery = ('SELECT U.*,\
-                      SUM(GL.usrKey=?) goodChecked,\
-                      COUNT(GL.usrKey) goodNumber\
-                      FROM urlList U\
-                      LEFT JOIN goodList GL ON GL.urlKey=U.urlKey\
-                      WHERE U.boxKey=?\
-                      GROUP BY U.urlKey\
-                      ORDER BY U.urlDate;');
-function boxUrlList(req, res, next) {
-    var usrKey = req.params.usrKey;
-    var boxKey = req.params.boxKey;
-    var queryParams = [usrKey, boxKey];
-    connection.query(boxUrlListQuery, queryParams, function (error, urlList) {
-        if (error != undefined) {
-            res.status(503).json({
-//                'result' : false,
-                'message' : 'there is some error in get url'
-            });
-            console.log(error);
-        }
-        else {
-            res.json({
-                'result' : true,
-                'object' : urlList
-            });
-        }
-    });
-}
-router.get(boxUrlListURL, boxUrlList);
-
-function leadingZeros(n, digits) {
-    var zero = '';
-    n = n.toString();
-
-    if (n.length < digits) {
-        for (i = 0; i < digits - n.length; i++)
-            zero += '0';
-    }
-    return zero + n;
-}
-function getTimeStamp() {
-    var d = new Date();
-
-    var s =
-            leadingZeros(d.getFullYear(), 4) + '-' +
-            leadingZeros(d.getMonth() + 1, 2) + '-' +
-            leadingZeros(d.getDate(), 2) + ' ' +
-
-            leadingZeros(d.getHours(), 2) + ':' +
-            leadingZeros(d.getMinutes(), 2) + ':' +
-            leadingZeros(d.getSeconds(), 2);
-
-    return s;
-}
-
-const addUrlURL = '/:usrKey/:boxKey/addUrl';
-const addUrlQuery = ('INSERT INTO urlList\
-                     (boxKey, urlWriterUsrKey, url, urlThumbnail,\
-                     urlTitle)\
-                     VALUES (?, ?, ?, ?, ?);');
-function addUrl(req, res, next) {
-    var boxKey = req.params.boxKey;
-    var usrKey = req.params.usrKey;
-    var url = req.body.url;
-    var urlThumbnail = req.body.urlThumbnail;
-    var urlTitle = req.body.urlTitle;
-    var queryParams = [boxKey, usrKey, url, urlThumbnail, urlTitle];
-    connection.query(addUrlQuery, queryParams, function(error, insertInfo) {
-        if (error != undefined) {
-            res.status(503).json({
-//                'result' : false,
-                'message' : 'there is some error in add url'
-            });
-            console.log(error);
-        }
-        else {
-            var object = {
-                'urlKey' : insertInfo.insertId,
-                'url' : url,
-                'urlThumbnail' : urlThumbnail,
-                'urlTitle' : urlTitle,
-                'urlDate' : getTimeStamp()
-            };
-            console.log(object);
-            res.json({
-                'result' : true,
-                'object' : object
-            });
-        }
-    });
-}
-router.post(addUrlURL, addUrl);
-
-const removeUrlURL = '/:usrKey/:boxKey/removeUrl';
-const removeUrlQuery = ('DELETE\
-                        FROM urlList\
-                        WHERE urlKey=?\
-                        AND boxKey=?;');
-function removeUrl(req, res, next) {
-    var boxKey = req.params.boxKey;
-    var urlKey = req.body.urlKey;
-    var queryParams = [urlKey, boxKey];
-    connection.query(removeUrlQuery, queryParams, function(error, deleteInfo) {
-        if (error != undefined) {
-            res.status(403).json({
-//                'result' : false,
-                'message' : 'there is error in remove url'
-            });
-        }
-        else {
-            console.log(deleteInfo);
-            res.json({
-                'result' : true
-            });
-        }
-    });
-}
-router.post(removeUrlURL, removeUrl);
-
-const editUrlURL = '/:usrKey/:oldBoxKey/:newBoxKey/editUrl';
-const editUrlQuery = ('UPDATE urlList\
-                      SET boxKey=?, urlTitle=?,\
-                      urlThumbnail=?\
-                      WHERE urlKey=?\
-                      AND boxKey=?;');
-function editUrl(req, res, next) {
-    var oldBoxKey = req.params.oldBoxKey;
-    var newBoxKey = req.params.newBoxKey;
-    var urlKey = req.body.urlKey;
-    var urlTitle = req.body.urlTitle;
-    var urlThumbnail = req.body.urlThumbnail;
-    var queryParams = [newBoxKey, urlTitle, urlThumbnail, urlKey, oldBoxKey];
-    connection.query(editUrlQuery, queryParams, function(error, updateInfo) {
-        if (error != undefined) {
-            res.status(403).json({
-//                'result' : false,
-                'message' : 'there is some error in update url'
-            });
-        }
-        else {
-            res.json({
-                'result' : true
-            });
-            console.log(updateInfo);
-          }
-    });
-}
-router.post(editUrlURL, editUrl);
+//Seperate Tag loading from url loading
+const urlAllListURL = ("/AllList/:usrKey/:startNum/:urlNum");
+const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
+                         SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
+                         FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
+                         WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlFavoriteListURL = ("/FavoriteList/:usrKey/:startNum/:urlNum");
+const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
+                              SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
+                              FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
+                              WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlNonHiddenListURL = ("/NonHiddenList/:usrKey/:startNum/:urlNum");
+const urlNonHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
+                               SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, 0 hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
+                               FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey AND UrofU.hidden=0 JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
+                               WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlBoxListURL = ("/BoxList/:usrKey/:startNum/:urlNum");
+const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
+                         SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
+                         FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
+                         WHERE Ur.urlWriterUsrKey=? AND Ur.urlBoxKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlAddURL = ("/Add/:usrKey/:boxKey");
+const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
+const urlAddQuery2 = ("INSERT INTO urlOfUsrList (usrKey, urlKey, readLater) VALUES (?, ?, ?);");
+const urlAddQuery3 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey) SELECT 1, usrKey, ?, ?, urlKey FROM urlOfUsrList WHERE urlKey=?;");
+const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
+const urlRemoveQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
+const urlEditURL = ("/Edit/:usrKey/:boxKey");
+const urlEditQuery = ("UPDATE urlOfUsrList SET hidden=? WHERE urlKey=? AND usrKey=?;");
+const urlHiddenURL = ("/Hidden/:usrKey/:boxKey");
+const urlHiddenQuery = ("UPDATE urlOfUsrList SET hidden=? WHERE urlKey=? AND usrKey=?;");
+const urlMoveURL = ("/Move/:usrKey/:originalBoxKey/:targetBoxKey");
+const urlMoveQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) SELECT ?, ?, url, urlTItle, urlThumbnail FROM urlList WHERE urlKey=?;");
+const urlMoveQuery2 = ("INSERT INTO urlOfUsrList (usrKey, urlKey, readLater) VALUES (?, ?, ?);");
+const urlLikeURL = ("/Like/:usrKey/:boxKey");
+const urlLikeQuery = ("UPDATE urlOfUsrList SET good=? WHERE urlKey=? AND usrKey=?;");
+const urlTaggAddURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
+const urlTagAddQuery = ("INSERT INTO tagList (urlKey, tag) VALUES (?, ?);");
+const urlTagRemoveURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
+const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
+const urlCommentListURL = ("/Comment/List/:usrKey/:boxKey/:urlKey");
+const urlCommentListQuery = ("SELECT C.usrKey, Us.usrThumbnail, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
+                             ORDER BY C.commentDate DECS;");
+const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
+const urlCommentAddQuery = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
+const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
+const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
+const urlCommentEditURL = ("/Comment/Edit/:usrKey/:boxKey/:urlKey");
+const urlCommentEditQuery = ("UPDATE commentList SET comment=? WHERE commentKey=? AND usrKey=?;");
 
 module.exports = router;
