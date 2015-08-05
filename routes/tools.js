@@ -8,9 +8,18 @@ module.exports = {
         console.log(message);
         console.log(err);
     },
-    giveResult : function(res, result, message, object) {
+    giveFail : function(res, message, object) {
         res.json({
-            result : result,
+            result : false,
+            message : message,
+            object :object
+        });
+        console.log(message);
+        console.log(object);
+    },
+    giveSuccess : function(res, message, object) {
+        res.json({
+            result : true,
             message : message,
             object : object
         });
