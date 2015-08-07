@@ -8,6 +8,15 @@ module.exports = {
         console.log(message);
         console.log(err);
     },
+    giveFail : function(res, message, object) {
+        res.json({
+            result : false,
+            message : message,
+            object :object
+        });
+        console.log(message);
+        console.log(object);
+    },
     giveSuccess : function(res, message, object) {
         res.json({
             result : true,
@@ -17,13 +26,6 @@ module.exports = {
         console.log(message);
         console.log(object);
     },
-    giveFail : function(res, message, object) {
-        res.json({
-            result : false,
-            message : message,
-            object :object
-        });
-        console.log(message);
-        console.log(object);
-    }
+
+
 }

@@ -1,7 +1,11 @@
 var express = require('express');
 var mysql = require('mysql');
 var router = express.Router();
-var tools = require('tools');
+var tools = require('./tools');
+
+var gcm = require('node-gcm');
+var server_api_key = 'AIzaSyDFpvBEzqfKIaVsBgLYPFvnTUN-MFU9qf8';
+var sender = new gcm.Sender(server_api_key);
 
 var connection = mysql.createConnection({
     'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
@@ -18,24 +22,23 @@ const boxAddQuery2 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThu
 const boxRemoveURL = ("/Remove/:usrKey");
 const boxRemoveQuery1 = ("SELECT 1 FROM boxOfUsrList WHERE usrKey=? AND boxKey=?;");
 const boxRemoveQuery2_1 = ("DELETE FROM boxOfUsrList WHERE usrKey=? AND boxKey=?;");
-const boxRemoveQuery2_2 = ("DELETE FROM boxList WHERE boxKey=?;\
-                           UPDATE boxList SET boxKey=boxKey-1 WHERE boxKey>?;\
-                           ALTER TABLE boxList AUTO_INCREMENT=1;");
+const boxRemoveQuery2_2 = ("DELETE FROM boxList WHERE boxKey=?;");
 const boxEditURL = ("/Edit/:usrKey");
 const boxEditQuery = ("UPDATE boxOfUsrList SET boxName=?, boxThumbnail=? WHERE usrKey=? AND boxKey=?;");
 const boxFavoriteURL = ("/Favorite/:usrKey");
-const boxFavoriteQuery = ("UPDATE boxOfUsrList SET boxFavorite=? AND boxKey=?;");
+const boxFavoriteQuery = ("UPDATE boxOfUsrList SET boxFavorite=? WHERE usrKey=? AND boxKey=?;");
 const boxInviteURL = ("/Invite/:usrKey/:boxKey");
 const boxInviteQuery1 = ("SELECT usrKey AS alarmSetUsrKey FROM usrList WHERE usrID=?;");
 const boxInviteQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage) VALUES (0, ?, ?, ?, ?);");
+const boxInviteQuery3 = ("SELECT pushToken FROM tokenList WHERE usrKey=?;");
 // AND NOT DB QUERY NODE ALARM
 const boxAcceptURL = ("/Accept/:alarmKey");
 const boxAcceptQuery = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) SELECT A.alarmGetUsrKey, A.alarmBoxKey, BofU.boxName, BofU.boxThumbnail, ?\
                         FROM alarmList A JOIN boxOfUsrList BofU ON usrKey=A.alarmSetUsrKey AND boxKey=A.alarmBoxKey WHERE A.alarmKey=?;");
 const boxDeclineURL = ("/Decline/:alarmKey");
 const boxDeclineQuery = ("DELETE FROM alarmList WHERE alarmKey=?;"); //This is also used for box Accept post process;
-const boxEditorURL = ("/Editor/:usrKey");
-const boxEditorQuery = ("SELECT Us.usrName, Us.usrProfile FROM boxOfUsrList BofU JOIN usrList Us ON BofU.usrKey=Us.usrKey WHERE BofU.boxKey=?;");
+const boxEditorListURL = ("/Editor/:usrKey");
+const boxEditorListQuery = ("SELECT Us.usrName, Us.usrProfile FROM boxOfUsrList BofU JOIN usrList Us ON BofU.usrKey=Us.usrKey WHERE BofU.boxKey=?;");
 
 router.get(boxListURL, boxList);
 function boxList(req, res, next) {
@@ -123,6 +126,161 @@ function boxRemove2(len, req, res, next) {
             }
         });
     }
+}
+
+router.post(boxEditURL, boxEdit);
+function boxEdit(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const boxName = req.body.boxName;
+    const boxThumbnail = req.body.boxThumbnail;
+    const boxKey = req.body.boxKey;
+    const queryParams = [boxName, boxThumbnail, usrKey, boxKey];
+    connection.query(boxEditQuery, queryParams, function(err, uInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Edit", err);
+        }
+        else {
+            console.log(uInfo);
+            tools.giveSuccess(res, "Success in Edit", null);
+        }
+    });
+}
+
+router.post(boxFavoriteURL, boxFavorite);
+function boxFavorite(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const boxFavorite = req.body.boxFavorite;
+    const boxKey = req.body.boxKey;
+    const queryParams = [boxFavorite, usrKey, boxKey];
+    connection.query(boxFavoriteQuery, queryParams, function(err, uInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Favorite", err);
+        }
+        else {
+            console.log(uInfo);
+            tools.giveSuccess(res, "Success in Favorite", null);
+        }
+    });
+}
+
+router.post(boxInviteURL, boxInvite1);
+function boxInvite1(req, res, next) {
+    const usrID = req.body.usrID;
+    const queryParams = [usrID];
+    connection.query(boxInviteQuery1, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Invite1", err);
+        }
+        else {
+            req.body.usrKey = cur[0];
+            boxInvite2(req, res, next);
+        }
+    });
+}
+function boxInvite2(req, res, next) {
+    const alarmSetUsrKey = req.params.usrKey;
+    const alarmBoxKey = req.params.boxKey;
+    const alarmGetUsrKey = req.body.usrKey;
+    const alarmMessage = req.body.message;
+    const queryParams = [alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage];
+    connection.query(boxInviteQuery2, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Invite2", err);
+        }
+        else {
+            console.log(iInfo);
+            boxInvite3(req, res, next);
+        }
+    });
+}
+function boxInvite3(req, res, next) {
+    const alarmGetUsrKey = req.body.usrKey;
+    const queryParams = [alarmGetUsrKey];
+    connection.query(boxInviteQuery3, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Invite3", err);
+        }
+        else {
+            var message = new gcm.Message({
+                collapseKey : "linkbox",
+                delayWhileIdle : true,
+
+
+                data: {
+                    result : true,
+                    object : {
+                        type : "",
+                        urlName : "",
+                        inviteDatas : ""
+                    }
+                }
+            });
+
+            sender.send(message, cur, 4, function(err, result) {
+                console.log(result);
+            });
+
+            res.status(200).send("Message Sent !!");
+        }
+    });
+}
+
+router.post(boxAcceptURL, boxAccept1);
+function boxAccept1(req, res, next) {
+    const alarmKey = req.params.alarmKey;
+    const boxIndex = req.body.boxIndex;
+    const queryParams = [boxIndex, alarmKey];
+    connection.query(boxAcceptQuery, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Accept1", err);
+        }
+        else {
+            console.log(iInfo);
+            boxAccept2(req, res, next);
+        }
+    });
+}
+function boxAccept2(req, res, next) {
+    const alarmKey = req.params.alarmKey;
+    const queryParams = [alarmKey];
+    connection.query(boxDeclineQuery, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Accept2", err);
+        }
+        else {
+            console.log(dInfo);
+            tools.giveSuccess(res, "Success in Accept", null);
+        }
+    });
+}
+
+router.post(boxDeclineURL, boxDecline);
+function boxDecline(req, res, next) {
+    const alarmKey = req.params.alarmKey;
+    const queryParams = [alarmKey];
+    connection.query(boxDeclineQuery, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Decline", err);
+        }
+        else {
+            console.log(dInfo);
+            tools.giveSuccess(res, "Success in Decline", null);
+        }
+    });
+}
+
+router.post(boxEditorListURL, boxEditorList);
+function boxEditorList(req, res, next) {
+    const boxKey = req.body.boxKey;
+    const queryParams = [boxKey];
+    connection.query(boxEditorListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in EditorList", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in EditorList", cur);
+        }
+    });
 }
 
 module.exports = router;

@@ -1,7 +1,7 @@
 var express = require('express');
 var mysql = require('mysql');
 var router = express.Router();
-var tools = require('tools');
+var tools = require('./tools');
 
 var connection = mysql.createConnection({
     'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
@@ -13,41 +13,47 @@ var connection = mysql.createConnection({
 
 //Seperate Tag loading from url loading
 const urlAllListURL = ("/AllList/:usrKey/:startNum/:urlNum");
-const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
-                         SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
-                         FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
-                         WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName,\
+                         SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater\
+                         FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=?\
+                         LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=? JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
+                         WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlFavoriteListURL = ("/FavoriteList/:usrKey/:startNum/:urlNum");
-const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
-                              SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
-                              FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
-                              WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName,\
+                              SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater\
+                              FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=?\
+                              LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=? JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
+                              WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey AND BofU.boxFavorite=1)\
+                              GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlNonHiddenListURL = ("/NonHiddenList/:usrKey/:startNum/:urlNum");
-const urlNonHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
-                               SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, 0 hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
-                               FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey AND UrofU.hidden=0 JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
-                               WHERE Ur.urlWriterUsrKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlNonHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
+                               FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                               JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
+                               AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlBoxListURL = ("/BoxList/:usrKey/:startNum/:urlNum");
-const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, GROUP_CONCAT(T.tag),\
-                         SUM(UrofU.good=1 AND UrofU.usrKey=?) good, SUM(UrofU.good=1) goodNum, SUM(UrofU.hidden=1 AND UrofU.usrKey=?) hidden, SUM(UrofU.readLater=1 AND UrofU.usrKey=?) readLater\
-                         FROM urlList Ur JOIN urlOfUsrList UrofU ON Ur.urlKey=UrofU.urlKey JOIN usrList Us ON Us.usrKey=Ur.urlWriterUsrKey JOIN tagList T ON T.urlKey=Ur.urlKey\
-                         WHERE Ur.urlWriterUsrKey=? AND Ur.urlBoxKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DECS LIMIT ?, ?;");
+const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum,\
+                         SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey\
+                         LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=? LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                         JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE Ur.urlBoxKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlAddURL = ("/Add/:usrKey/:boxKey");
 const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
-const urlAddQuery2 = ("INSERT INTO urlOfUsrList (usrKey, urlKey, readLater) VALUES (?, ?, ?);");
-const urlAddQuery3 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey) SELECT 1, usrKey, ?, ?, urlKey FROM urlOfUsrList WHERE urlKey=?;");
+const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey)\
+                      SELECT 1, usrKey, ?, boxKey, ? FROM boxOfUsrList WHERE boxKey=? AND usrKey<>?;");
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
-const urlRemoveQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
+const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;");
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
-const urlEditQuery = ("UPDATE urlOfUsrList SET hidden=? WHERE urlKey=? AND usrKey=?;");
+const urlEditQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
 const urlHiddenURL = ("/Hidden/:usrKey/:boxKey");
-const urlHiddenQuery = ("UPDATE urlOfUsrList SET hidden=? WHERE urlKey=? AND usrKey=?;");
-const urlMoveURL = ("/Move/:usrKey/:originalBoxKey/:targetBoxKey");
-const urlMoveQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) SELECT ?, ?, url, urlTItle, urlThumbnail FROM urlList WHERE urlKey=?;");
-const urlMoveQuery2 = ("INSERT INTO urlOfUsrList (usrKey, urlKey, readLater) VALUES (?, ?, ?);");
+const urlHiddenQuery1_1 = ("INSERT INTO hiddenList (urlKey, usrKey) VALUES (?, ?);");
+const urlHiddenQuery1_2 = ("DELETE FROM hiddenList WHERE urlKey=? AND usrKey=?;");
+const urlShareURL = ("/Move/:usrKey/:originalBoxKey/:targetBoxKey");
+const urlShareQuery = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) SELECT ?, ?, url, urlTItle, urlThumbnail FROM urlList WHERE urlKey=?;");
 const urlLikeURL = ("/Like/:usrKey/:boxKey");
-const urlLikeQuery = ("UPDATE urlOfUsrList SET good=? WHERE urlKey=? AND usrKey=?;");
-const urlTaggAddURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
+const urlLikeQuery1_1 = ("INSERT INTO goodList (urlKey, usrKey) VALUES (?, ?);");
+const urlLikeQuery1_2 = ("DELETE FROM goodList WHERE urlKey=? AND usrKey=?;");
+const urlTagListURL = ("/Tag/List/:usrKey/:boxKey/:urlKey");
+const urlTagListQuery = ("SELECT tagKey, tag FROM tagList WHERE urlKey=?;");
+const urlTagAddURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
 const urlTagAddQuery = ("INSERT INTO tagList (urlKey, tag) VALUES (?, ?);");
 const urlTagRemoveURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
 const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
@@ -60,5 +66,303 @@ const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
 const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
 const urlCommentEditURL = ("/Comment/Edit/:usrKey/:boxKey/:urlKey");
 const urlCommentEditQuery = ("UPDATE commentList SET comment=? WHERE commentKey=? AND usrKey=?;");
+
+router.get(urlAllListURL, urlAllList);
+function urlAllList(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const startNum = req.params.startNum;
+    const urlNum = req.params.urlNum;
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    connection.query(urlAllListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in All List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in All List", cur);
+        }
+    });
+}
+
+router.get(urlFavoriteListURL, urlFavoriteList);
+function urlFavoriteList(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const startNum = req.params.startNum;
+    const urlNum = req.params.urlNum;
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    connection.query(urlAllListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Favorite List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in Favorite List", cur);
+        }
+    });
+}
+
+router.get(urlNonHiddenListURL, urlNonHiddenList);
+function urlNonHiddenList(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const startNum = req.params.startNum;
+    const urlNum = req.params.urlNum;
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    connection.query(urlNonHiddenListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Non Hidden List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in Non Hidden List", cur);
+        }
+    });
+}
+
+router.get(urlBoxListURL, urlBoxList);
+function urlBoxList(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const startNum = req.params.startNum;
+    const urlNum = req.params.urlNum;
+    const boxKey = req.body.boxKey;
+    const queryParams = [usrKey, usrKey, usrKey, boxKey, startNum, urlNum];
+    connection.query(urlBoxListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Box List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in Box List", cur);
+        }
+    });
+}
+
+router.post(urlAddURL, urlAdd1);
+function urlAdd1(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const boxKey = req.params.boxKey;
+    const url = req.body.url;
+    const urlTitle = req.body.urlTitle;
+    const urlThumbnail = req.body.urlThumbnail;
+    const queryParams = [boxKey, usrKey, url, urlTitle, urlThumbnail];
+    connection.query(urlAddQuery1, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Add", err);
+        }
+        else {
+            console.log(iInfo);
+            req.body.urlKey = iInfo.insertId;
+            urlAdd2(req, res, next);
+        }
+    });
+}
+function urlAdd2(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const boxKey = req.params.boxKey;
+    const urlKey = req.body.urlKey;
+    const queryParams = [usrKey, urlKey, boxKey, usrKey];
+    connection.query(urlAddQuery2, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+
+        }
+    });
+}
+
+router.post(urlRemoveURL, urlRemove);
+function urlRemove(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const urlKey = req.body.urlKey;
+    const queryParams = [urlKey, usrKey];
+    connection.query(urlRemoveQuery, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Remove", err);
+        }
+        else {
+            console.log(dInfo);
+            tools.giveSuccess(res, "Success in Remove", null);
+        }
+    });
+}
+
+router.post(urlEditURL, urlEdit);
+function urlEdit(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const urlTitle = req.body.urlTitle;
+    const urlKey = req.body.urlKey;
+    const queryParams = [urlTitle, urlKey, usrKey];
+    connection.query(urlEditQuery, queryParams, function(err, uInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Edit", err);
+        }
+        else {
+            console.log(uInfo);
+            tools.giveSuccess(res, "Success in Edit", null);
+        }
+    });
+}
+
+router.post(urlHiddenURL, urlHidden);
+function urlHidden(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const urlKey = req.body.urlKey;
+    const queryParams = [urlKey, usrKey];
+
+    if (req.body.hidden) {
+        connection.query(urlHiddenQuery1_1, queryParams, function(err, iInfo) {
+            if (err != undefined) {
+                tools.giveError(res, 503, "Error in Hidden", err);
+            }
+            else {
+                console.log(iInfo);
+                tools.giveSuccess(res, "Success in Hidden", null);
+            }
+        });
+    }
+    else {
+        connection.query(urlHiddenQuery1_2, queryParams, function(err, dInfo) {
+            if (err != undefined) {
+                tools.giveError(res, 503, "Error in Hidden", err);
+            }
+            else {
+                console.log(dInfo);
+                tools.giveSuccess(res, "Success in Hidden", null);
+            }
+        });
+    }
+}
+
+router.post(urlShareURL, urlShare);
+function urlShare(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const targetBoxKey = req.params.targetBoxKey;
+    const urlKey = req.body.urlKey;
+    const queryParams = [targetBoxKey, usrKey, urlKey];
+    connection.query(urlShareQuery, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Share", err);
+        }
+        else {
+            console.log(iInfo);
+            tools.giveSuccess(res, "Success in Share", null);
+        }
+    });
+}
+
+router.post(urlLikeURL, urlLike);
+function urlLike(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const urlKey = req.body.urlKey;
+    const queryParams = [urlKey, usrKey];
+    if (req.body.like) {
+        connection.query(urlLikeQuery1_1, queryParams, function(err, iInfo) {
+            if (err != undefined) {
+                tools.giveError(res, 503, "Error in Like", err);
+            }
+            else {
+                console.log(iInfo);
+                tools.giveSuccess(res, "Success in Like", null);
+            }
+        });
+    }
+    else {
+        connection.query(urlLikeQuery1_2, queryParams, function(err, dInfo) {
+            if (err != undefined) {
+                tools.giveError(res, 503, "Error in Like", err);
+            }
+            else {
+                console.log(dInfo);
+                tools.giveSuccess(res, "Success in Like", null);
+            }
+        });
+    }
+}
+
+router.get(urlTagListURL, urlTagList);
+function urlTagList(req, res, next) {
+    const urlKey = req.params.urlKey;
+    const queryParams = [urlKey];
+    connection.query(urlTagListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Tag List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in Tag List", cur);
+        }
+    });
+}
+
+router.post(urlTagAddURL, urlTagAdd);
+function urlTagAdd(req, res, next) {
+    const urlKey = req.params.urlKey;
+    const tag = req.body.tag;
+    const queryParams = [urlKey, tag];
+    connection.query(urlTagAddQuery, queryParams, function(err, iInfo){
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Tag Add", err);
+        }
+        else {
+            console.log(iInfo);
+            tools.giveSuccess(res, "Success in Tag Add", null);
+        }
+    });
+}
+
+router.post(urlTagRemoveURL, urlTagRemove);
+function urlTagRemove(req, res, next) {
+    const urlKey = req.params.urlKey;
+    const tagKey = req.body.tagKey;
+    const queryParams = [tagKey, urlKey];
+    connection.query(urlTagRemoveQuery, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Tag Remove", err);
+        }
+        else {
+            console.log(dInfo);
+            tools.giveSuccess(res, "Success in Tag Remove", null);
+        }
+    });
+}
+
+router.get(urlCommentListURL, urlCommentList);
+function urlCommentList(req, res, next) {
+    const urlKey = req.params.urlKey;
+    const queryParams = [urlKey];
+    connection.query(urlCommentListQuery, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Comment List", err);
+        }
+        else {
+            tools.giveSuccess(res, "Success in Comment List", cur);
+        }
+    });
+}
+
+router.post(urlCommentAddURL, urlCommentAdd);
+function urlCommentAdd(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const urlKey = req.params.urlKey;
+    const comment = req.body.comment;
+    const queryParams = [urlKey, usrKey, comment];
+    connection.query(urlCommentAddQuery, queryParams, function(err, iInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Comment Add", err);
+        }
+        else {
+            console.log(iInfo);
+            tools.giveSuccess(res, "Success in Comment Add", null);
+        }
+    });
+}
+
+router.post(urlCommentRemoveURL, urlCommentRemove);
+function urlCommentRemove(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const commentKey = req.body.commentKey;
+    const queryParams = [commentKey, usrKey];
+    connection.query(urlCommentRemoveQuery, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Comment Remove", err);
+        }
+        else {
+            console.log(dInfo);
+            tools.giveSuccess(res, "Success in Comment Remove", null);
+        }
+    });
+}
 
 module.exports = router;
