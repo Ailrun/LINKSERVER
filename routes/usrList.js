@@ -126,7 +126,7 @@ function usrSignup3(req, res, next) {
     });
 }
 function usrSignup4(len, req, res, next) {
-    console.log(req);
+    console.log(req.params);
     const deviceKey = req.params.deviceKey;
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
