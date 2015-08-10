@@ -1,40 +1,33 @@
 var express = require('express');
-var mysql = require('mysql');
 var router = express.Router();
 var tools = require('./tools');
 
-var connection = mysql.createConnection({
-    'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
-    'user' : 'LINKBOX',
-    'password' : 'dlrpqkfhdnflek',
-    'database' : 'LINKBOX'
-});
-
+require('./connection')();
 
 //Seperate Tag loading from url loading
 const urlAllListURL = ("/AllList/:usrKey/:startNum/:urlNum");
-const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName,\
-                         SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater\
-                         FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=?\
-                         LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=? JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
-                         WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
+                         FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                         JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
+                         WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
+                         AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlFavoriteListURL = ("/FavoriteList/:usrKey/:startNum/:urlNum");
-const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName,\
-                              SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater\
-                              FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=?\
-                              LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=? JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
+const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
+                              FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                              JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
                               WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey AND BofU.boxFavorite=1)\
-                              GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
-const urlNonHiddenListURL = ("/NonHiddenList/:usrKey/:startNum/:urlNum");
-const urlNonHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
-                               FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
-                               JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
-                               AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
-const urlBoxListURL = ("/BoxList/:usrKey/:startNum/:urlNum");
-const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum,\
-                         SUM(!ISNULL(H.usrKey)) hidden, SUM(!ISNULL(R.usrKey)) readLater FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey\
-                         LEFT JOIN hiddenList H ON H.urlKey=Ur.urlKey AND H.usrKey=? LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
-                         JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE Ur.urlBoxKey=? GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+                              AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+const urlHiddenListURL = ("/HiddenList/:usrKey/:startNum/:urlNum");
+const urlHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
+                            FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                            JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
+                            AND EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+const urlBoxListURL = ("/BoxList/:usrKey/:boxKey/:startNum/:urlNum");
+const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrName, SUM(G.usrKey=?) good, SUM(!ISNULL(G.usrKey)) goodNum, SUM(!ISNULL(R.usrKey)) readLater\
+                         FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
+                         JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
+                         WHERE Ur.urlBoxKey=? AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey)\
+                         GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
 const urlAddURL = ("/Add/:usrKey/:boxKey");
 const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
 const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey)\
@@ -46,7 +39,7 @@ const urlEditQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWrite
 const urlHiddenURL = ("/Hidden/:usrKey/:boxKey");
 const urlHiddenQuery1_1 = ("INSERT INTO hiddenList (urlKey, usrKey) VALUES (?, ?);");
 const urlHiddenQuery1_2 = ("DELETE FROM hiddenList WHERE urlKey=? AND usrKey=?;");
-const urlShareURL = ("/Move/:usrKey/:originalBoxKey/:targetBoxKey");
+const urlShareURL = ("/Share/:usrKey/:originalBoxKey/:targetBoxKey");
 const urlShareQuery = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) SELECT ?, ?, url, urlTItle, urlThumbnail FROM urlList WHERE urlKey=?;");
 const urlLikeURL = ("/Like/:usrKey/:boxKey");
 const urlLikeQuery1_1 = ("INSERT INTO goodList (urlKey, usrKey) VALUES (?, ?);");
@@ -89,7 +82,7 @@ function urlFavoriteList(req, res, next) {
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
     const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
-    connection.query(urlAllListQuery, queryParams, function(err, cur) {
+    connection.query(urlFavoriteListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Favorite List", err);
         }
@@ -99,13 +92,13 @@ function urlFavoriteList(req, res, next) {
     });
 }
 
-router.get(urlNonHiddenListURL, urlNonHiddenList);
-function urlNonHiddenList(req, res, next) {
+router.get(urlHiddenListURL, urlHiddenList);
+function urlHiddenList(req, res, next) {
     const usrKey = req.params.usrKey;
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
     const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
-    connection.query(urlNonHiddenListQuery, queryParams, function(err, cur) {
+    connection.query(urlHiddenListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Non Hidden List", err);
         }
@@ -120,8 +113,8 @@ function urlBoxList(req, res, next) {
     const usrKey = req.params.usrKey;
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
-    const boxKey = req.body.boxKey;
-    const queryParams = [usrKey, usrKey, usrKey, boxKey, startNum, urlNum];
+    const boxKey = req.params.boxKey;
+    const queryParams = [usrKey, usrKey, boxKey, usrKey, startNum, urlNum];
     connection.query(urlBoxListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Box List", err);

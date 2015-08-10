@@ -1,18 +1,9 @@
 var express = require('express');
-var mysql = require('mysql');
 var router = express.Router();
 var tools = require('./tools');
 
-var gcm = require('node-gcm');
-var server_api_key = 'AIzaSyDFpvBEzqfKIaVsBgLYPFvnTUN-MFU9qf8';
-var sender = new gcm.Sender(server_api_key);
-
-var connection = mysql.createConnection({
-    'host' : 'aws-rds-linkbox.cjfjhr6oeu3e.ap-northeast-1.rds.amazonaws.com',
-    'user' : 'LINKBOX',
-    'password' : 'dlrpqkfhdnflek',
-    'database' : 'LINKBOX'
-});
+require('./gcm')();
+require('./connection')();
 
 const boxListURL = ("/List/:usrKey");
 const boxListQuery = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU ON usrKey=? ORDER BY boxIndex DESC;");
