@@ -1,5 +1,5 @@
 var express = require('express');
-var mysql = require('mysql');
+var router = express.Router();
 var tools = require('./tools');
 
 require('./connection')();
