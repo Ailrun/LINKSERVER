@@ -13,7 +13,7 @@ const usrSignupURL = ("/Signup/:deviceKey");
 const usrSignupQuery1 = ("SELECT 1 FROM usrList WHERE usrID=?;");
 const usrSignupQuery2 = ("INSERT INTO usrList (usrID, usrPassword, usrName) VALUES (?, ?, ?);");
 const usrSignupQuery3 = ("SELECT 1 FROM tokenList WHERE deviceKey=?;");
-const usrSignupQuery4_1 = ("INSERT INTO tokenList (usrKey, deviceKey, pushToken) VALUES (?, ?, ?);");
+const usrSignupQuery4_1 = ("INSERT INTO tokenList (usrKey, pushToken, deviceKey) VALUES (?, ?, ?);");
 const usrSignupQuery4_2 = ("UPDATE tokenList SET usrKey=?, pushToken=? WHERE deviceKey=?;");
 const usrProfileURL = ("/Profile");
 const usrProfileQuery = ("UPDATE usrList SET usrProfile=? WHERE usrKey=?;");
