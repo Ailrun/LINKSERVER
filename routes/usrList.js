@@ -131,10 +131,10 @@ function usrSignup4(len, req, res, next) {
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
     const queryParams = [usrKey, pushToken, deviceKey];
-    if (!len) {
+    if (len == 0) {
         connection.query(usrSignupQuery4_1, queryParams, function (err, iInfo) {
             if (err != undefined) {
-                tools.giveError(res, 503, "Error in Signup4", err);
+                tools.giveError(res, 503, "Error in Signup4-1", err);
             }
             else {
                 tools.giveSuccess(res, "Success in Signup4", req.body);
@@ -144,7 +144,7 @@ function usrSignup4(len, req, res, next) {
     else {
         connection.query(usrSignupQuery4_2, queryParams, function (err, uInfo) {
             if (err != undefined) {
-                tools.giveError(res, 503, "Error in Signup4", err);
+                tools.giveError(res, 503, "Error in Signup4-2", err);
             }
             else {
                 tools.giveSuccess(res, "Success in Signup4", req.body);
