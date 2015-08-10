@@ -131,7 +131,7 @@ function usrSignup4(len, req, res, next) {
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
     const queryParams = [usrKey, pushToken, deviceKey];
-    if (len == 0) {
+    if (!len) {
         connection.query(usrSignupQuery4_1, queryParams, function (err, iInfo) {
             if (err != undefined) {
                 tools.giveError(res, 503, "Error in Signup4-1", err);
