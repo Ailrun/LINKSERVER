@@ -59,7 +59,7 @@ function usrLogin3(len, req, res, next) {
     const deviceKey = req.params.deviceKey;
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
-    const queryParams = [usrKey, usrToken, deviceKey];
+    const queryParams = [usrKey, pushToken, deviceKey];
     if (!len) {
         connection.query(usrLoginQuery3_1, queryParams, function(err, iInfo) {
             if (err != undefined) {

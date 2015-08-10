@@ -6,7 +6,7 @@ require('./gcm')();
 require('./connection')();
 
 const boxListURL = ("/List/:usrKey");
-const boxListQuery = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU ON usrKey=? ORDER BY boxIndex DESC;");
+const boxListQuery = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU WHERE usrKey=? ORDER BY boxIndex DESC;");
 const boxAddURL = ("/Add/:usrKey");
 const boxAddQuery1 = ("INSERT INTO boxList () VALUES ();");
 const boxAddQuery2 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) VALUES (?, ?, ?, ?, ?);");
