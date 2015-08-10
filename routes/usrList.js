@@ -4,7 +4,7 @@ var tools = require('./tools');
 
 require('./connection')();
 
-const usrLoginURL = ("/Login/:deviceKey/");
+const usrLoginURL = ("/Login/:deviceKey");
 const usrLoginQuery1 = ("SELECT usrKey, usrID, usrName, usrProfile, usrType FROM usrList Us WHERE usrID=?;");
 const usrLoginQuery2 = ("SELECT 1 FROM tokenList WHERE deviceKey=?;");
 const usrLoginQuery3_1 = ("INSERT INTO tokenList (usrKey, pushToken, deviceKey) VALUES (?, ?, ?);");
@@ -126,6 +126,7 @@ function usrSignup3(req, res, next) {
     });
 }
 function usrSignup4(len, req, res, next) {
+    console.log(req);
     const deviceKey = req.params.deviceKey;
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
