@@ -29,6 +29,7 @@ router.post(usrLoginURL, usrLogin1);
 function usrLogin1(req, res, next) {
     const usrID = req.body.usrID;
     const usrType = req.body.usrType;
+    const pushToken = req.body.pushToken;
     const queryParams = [usrID, usrType];
     connection.query(usrLoginQuery1, queryParams, function(err, cur) {
         if (err != undefined) {
@@ -39,6 +40,7 @@ function usrLogin1(req, res, next) {
         }
         else {
             req.body = cur[0];
+            req.body.pushToken = pushToken;
             usrLogin2(req, res, next);
         }
     });
@@ -60,7 +62,6 @@ function usrLogin3(len, req, res, next) {
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
     const queryParams = [usrKey, pushToken, deviceKey];
-    console.log(req.body);
     if (!len) {
         connection.query(usrLoginQuery3_1, queryParams, function(err, iInfo) {
             if (err != undefined) {
