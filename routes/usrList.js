@@ -53,6 +53,7 @@ function usrLogin2(req, res, next) {
             tools.giveError(res, 503, "Error in usrLogin2", err);
         }
         else {
+            console.log(cur);
             usrLogin3(cur.length, req, res, next);
         }
     });
@@ -62,7 +63,7 @@ function usrLogin3(len, req, res, next) {
     const usrKey = req.body.usrKey;
     const pushToken = req.body.pushToken;
     const queryParams = [usrKey, pushToken, deviceKey];
-    if (!len) {
+    if (len == 0) {
         connection.query(usrLoginQuery3_1, queryParams, function(err, iInfo) {
             if (err != undefined) {
                 tools.giveError(res, 503, "Error in usrLogin3", err);
