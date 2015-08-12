@@ -32,6 +32,7 @@ const urlAddURL = ("/Add/:usrKey/:boxKey");
 const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
 const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey)\
                       SELECT 1, usrKey, ?, boxKey, ? FROM boxOfUsrList WHERE boxKey=? AND usrKey<>?;");
+const urlAddQuery3 = ("SELECT ");
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
 const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;");
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
