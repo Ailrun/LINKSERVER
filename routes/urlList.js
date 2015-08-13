@@ -68,6 +68,9 @@ function urlAllList(req, res, next) {
     const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
     connection.query(urlAllListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
+            console.log(err);
+            console.log(cur);
+            console.log(req);
             tools.giveError(res, 503, "Error in All List", err);
         }
         else {
