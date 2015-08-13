@@ -32,7 +32,6 @@ const urlAddURL = ("/Add/:usrKey/:boxKey");
 const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
 const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey)\
                       SELECT 1, usrKey, ?, boxKey, ? FROM boxOfUsrList WHERE boxKey=? AND usrKey<>?;");
-const urlAddQuery3 = ("SELECT ");
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
 const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;");
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
@@ -136,7 +135,7 @@ function urlAdd1(req, res, next) {
     const queryParams = [boxKey, usrKey, url, urlTitle, urlThumbnail];
     connection.query(urlAddQuery1, queryParams, function(err, iInfo) {
         if (err != undefined) {
-            tools.giveError(res, 503, "Error in Add", err);
+            tools.giveError(res, 503, "Error in Add1", err);
         }
         else {
             console.log(iInfo);
@@ -152,7 +151,11 @@ function urlAdd2(req, res, next) {
     const queryParams = [usrKey, urlKey, boxKey, usrKey];
     connection.query(urlAddQuery2, queryParams, function(err, iInfo) {
         if (err != undefined) {
-
+            tools.giveError(res, 503, "Error in Add2", err);
+        }
+        else {
+            console.log(iInfo);
+            tools.giveSuccess(res, "Success in Add2", req.body);
         }
     });
 }
@@ -232,7 +235,8 @@ function urlShare(req, res, next) {
         }
         else {
             console.log(iInfo);
-            tools.giveSuccess(res, "Success in Share", null);
+            req.body.urlKey=iInfo.insertKey;
+            tools.giveSuccess(res, "Success in Share", req.body);
         }
     });
 }
@@ -291,7 +295,8 @@ function urlTagAdd(req, res, next) {
         }
         else {
             console.log(iInfo);
-            tools.giveSuccess(res, "Success in Tag Add", null);
+            req.body.tagKey=iInfo.insertKey;
+            tools.giveSuccess(res, "Success in Tag Add", req.body);
         }
     });
 }
