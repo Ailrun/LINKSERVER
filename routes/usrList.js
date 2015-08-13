@@ -5,7 +5,7 @@ var tools = require('./tools');
 require('./connection')();
 
 const usrLoginURL = ("/Login/:deviceKey");
-const usrLoginQuery1 = ("SELECT usrKey, usrID, usrName, usrProfile, usrType FROM usrList Us WHERE usrID=?;");
+const usrLoginQuery1 = ("SELECT usrKey, usrID, usrName, usrProfile, usrType FROM usrList Us WHERE usrID=? AND usrPassword=? AND usrType=?;");
 const usrLoginQuery2 = ("SELECT 1 FROM tokenList WHERE deviceKey=?;");
 const usrLoginQuery3_1 = ("INSERT INTO tokenList (usrKey, pushToken, deviceKey) VALUES (?, ?, ?);");
 const usrLoginQuery3_2 = ("UPDATE tokenList SET usrKey=?, pushToken=? WHERE deviceKey=?");
@@ -28,9 +28,10 @@ const usrSigndownQuery = ("DELETE FROM usrList WHERE usrKey=? AND usrID=? AND us
 router.post(usrLoginURL, usrLogin1);
 function usrLogin1(req, res, next) {
     const usrID = req.body.usrID;
+    const usrPassword = req.body.usrPassword;
     const usrType = req.body.usrType;
     const pushToken = req.body.pushToken;
-    const queryParams = [usrID, usrType];
+    const queryParams = [usrID, usrPassword, usrType];
     connection.query(usrLoginQuery1, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in usrLogin1", err);
