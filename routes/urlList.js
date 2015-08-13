@@ -65,12 +65,9 @@ function urlAllList(req, res, next) {
     const usrKey = req.params.usrKey;
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
-    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum*1, urlNum*1];
     connection.query(urlAllListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
-            console.log(err);
-            console.log(cur);
-            console.log(req);
             tools.giveError(res, 503, "Error in All List", err);
         }
         else {
@@ -84,7 +81,7 @@ function urlFavoriteList(req, res, next) {
     const usrKey = req.params.usrKey;
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
-    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum*1, urlNum*1];
     connection.query(urlFavoriteListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Favorite List", err);
@@ -100,7 +97,7 @@ function urlHiddenList(req, res, next) {
     const usrKey = req.params.usrKey;
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
-    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum, urlNum];
+    const queryParams = [usrKey, usrKey, usrKey, usrKey, startNum*1, urlNum*1];
     connection.query(urlHiddenListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Non Hidden List", err);
@@ -117,7 +114,7 @@ function urlBoxList(req, res, next) {
     const startNum = req.params.startNum;
     const urlNum = req.params.urlNum;
     const boxKey = req.params.boxKey;
-    const queryParams = [usrKey, usrKey, boxKey, usrKey, startNum, urlNum];
+    const queryParams = [usrKey, usrKey, boxKey, usrKey, startNum*1, urlNum*1];
     connection.query(urlBoxListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Box List", err);
