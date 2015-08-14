@@ -196,8 +196,6 @@ function boxInvite3(req, res, next) {
             var message = new gcm.Message({
                 collapseKey : "linkbox",
                 delayWhileIdle : true,
-
-
                 data: {
                     result : true,
                     object : {
@@ -207,6 +205,7 @@ function boxInvite3(req, res, next) {
                     }
                 }
             });
+            console.log(cur);
 
             sender.send(message, cur, 4, function(err, result) {
                 console.log(result);
