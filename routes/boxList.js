@@ -199,7 +199,7 @@ function boxInvite3(req, res, next) {
                 data: {
                     result : true,
                     object : {
-                        type : "",
+                        type : "boxInvite",
                         urlName : "",
                         inviteDatas : ""
                     }
