@@ -207,7 +207,7 @@ function boxInvite3(req, res, next) {
             });
             console.log(cur);
 
-            sender.send(message, cur, 4, function(err, result) {
+            sender.send(message, "d-fcowGbY_E:APA91bHo8WdD5GHT7hIqhy9ZGX90A4-jYcw9kqK3iho4h9eSrw1keZYr8rgaktupEACZlXV2n_BmdMtSnk3xmGw2O6YwmWcY4x8PNwJGz3dGnJMimG-gd-dviutadeDEg_EInuk07HRl", 4, function(err, result) {
                 console.log(result);
             });
 
