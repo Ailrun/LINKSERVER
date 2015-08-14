@@ -163,7 +163,7 @@ function boxInvite1(req, res, next) {
             tools.giveError(res, 503, "Error in Invite1", err);
         }
         else {
-            req.body.usrKey = cur[0];
+            req.body.usrKey = cur[0].alarmSetUsrKey;
             boxInvite2(req, res, next);
         }
     });
