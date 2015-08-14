@@ -174,6 +174,7 @@ function boxInvite2(req, res, next) {
     const alarmGetUsrKey = req.body.usrKey;
     const alarmMessage = req.body.message;
     const queryParams = [alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage];
+    console.log(req.body);
     connection.query(boxInviteQuery2, queryParams, function(err, iInfo) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Invite2", err);
