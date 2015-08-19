@@ -190,7 +190,7 @@ function boxInvite2(req, res, next) {
         }
         else {
             console.log(iInfo);
-            req.body.alarmKey = iInfo.insertKey;
+            req.body.alarmKey = iInfo.insertId;
             boxInvite3(req, res, next);
         }
     });
