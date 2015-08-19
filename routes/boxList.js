@@ -265,8 +265,9 @@ function boxAccept1(req, res, next) {
     });
 }
 function boxAccept2(req, res, next) {
-    const usrKey = req.params.alarmKey;
-    const queryParams = [alarmKey];
+    const usrKey = req.params.usrKey;
+    const boxKey = req.body.boxKey;
+    const queryParams = [usrKey, boxKey];
     connection.query(boxAcceptQuery2, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Accept2", err);
@@ -283,7 +284,7 @@ function boxAccept2(req, res, next) {
 function boxAccept3(req, res, next) {
     const alarmKey = req.params.alarmKey;
     const queryParams = [alarmKey];
-    connection.query(boxAcceptQuery3, queryParams, function(err, dInfo) {
+    connection.query(boxDeclineQuery, queryParams, function(err, dInfo) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Accept3", err);
         }
