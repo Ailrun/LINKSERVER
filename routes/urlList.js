@@ -11,52 +11,71 @@ const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail
                          JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
                          WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
                          AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+
 const urlFavoriteListURL = ("/FavoriteList/:usrKey/:startNum/:urlNum");
 const urlFavoriteListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrKey urlWriterUsrKey, Us.usrName urlWriterUsrName, SUM(G.usrKey=?) liked, SUM(!ISNULL(G.usrKey)) likedNum, SUM(!ISNULL(R.usrKey)) readLater\
                               FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
                               JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
                               WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey AND BofU.boxFavorite=1)\
                               AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+
 const urlHiddenListURL = ("/HiddenList/:usrKey/:startNum/:urlNum");
 const urlHiddenListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrKey urlWriterUsrKey, Us.usrName urlWriterUsrName, SUM(G.usrKey=?) liked, SUM(!ISNULL(G.usrKey)) likedNum, SUM(!ISNULL(R.usrKey)) readLater\
                             FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
                             JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
                             AND EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey) GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+
 const urlBoxListURL = ("/BoxList/:usrKey/:boxKey/:startNum/:urlNum");
 const urlBoxListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrKey urlWriterUsrKey, Us.usrName urlWriterUsrName, SUM(G.usrKey=?) liked, SUM(!ISNULL(G.usrKey)) likedNum, SUM(!ISNULL(R.usrKey)) readLater\
                          FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
                          JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
                          WHERE Ur.urlBoxKey=? AND NOT EXISTS (SELECT 1 FROM hiddenList H WHERE H.usrKey=? AND H.urlKey=Ur.urlKey)\
                          GROUP BY Ur.urlKey ORDER BY Ur.urlDate DESC LIMIT ?, ?;");
+
 const urlAddURL = ("/Add/:usrKey/:boxKey");
 const urlAddQuery1 = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) VALUES (?, ?, ?, ?, ?);");
 const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmUrlKey)\
                       SELECT 1, usrKey, ?, boxKey, ? FROM boxOfUsrList WHERE boxKey=? AND usrKey<>?;");
+
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
-const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;");
+const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;\
+                        ALTER TABLE urlList AUTO_INCREMENT=1");
+
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
 const urlEditQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
+
 const urlHiddenURL = ("/Hidden/:usrKey/:boxKey");
 const urlHiddenQuery1_1 = ("INSERT INTO hiddenList (urlKey, usrKey) VALUES (?, ?);");
 const urlHiddenQuery1_2 = ("DELETE FROM hiddenList WHERE urlKey=? AND usrKey=?;");
+
 const urlShareURL = ("/Share/:usrKey/:originalBoxKey/:targetBoxKey");
 const urlShareQuery = ("INSERT INTO urlList (urlBoxKey, urlWriterUsrKey, url, urlTitle, urlThumbnail) SELECT ?, ?, url, urlTItle, urlThumbnail FROM urlList WHERE urlKey=?;");
+
 const urlLikeURL = ("/Like/:usrKey/:boxKey");
 const urlLikeQuery1_1 = ("INSERT INTO goodList (urlKey, usrKey) VALUES (?, ?);");
 const urlLikeQuery1_2 = ("DELETE FROM goodList WHERE urlKey=? AND usrKey=?;");
+
 const urlTagListURL = ("/Tag/List/:usrKey/:boxKey/:urlKey");
 const urlTagListQuery = ("SELECT tagKey, tag FROM tagList WHERE urlKey=?;");
+
 const urlTagAddURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
 const urlTagAddQuery = ("INSERT INTO tagList (urlKey, tag) VALUES (?, ?);");
+
 const urlTagRemoveURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
-const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
+const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;\
+                           ALTER TABLE tagList AUTO_INCREMENT=1");
+
 const urlCommentListURL = ("/Comment/List/:usrKey/:boxKey/:urlKey");
 const urlCommentListQuery = ("SELECT C.usrKey, Us.usrThumbnail, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
                              ORDER BY C.commentDate DECS;");
+
 const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
 const urlCommentAddQuery = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
+
 const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
-const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
+const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;\
+                               ALTER TABLE commentList AUTO_INCREMENT=1");
+
 const urlCommentEditURL = ("/Comment/Edit/:usrKey/:boxKey/:urlKey");
 const urlCommentEditQuery = ("UPDATE commentList SET comment=? WHERE commentKey=? AND usrKey=?;");
 
