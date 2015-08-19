@@ -198,6 +198,8 @@ function boxInvite2(req, res, next) {
 function boxInvite3(req, res, next) {
     const alarmKey = req.body.alarmKey;
     const queryParams = [alarmKey];
+    console.log(req.body);
+    console.log(req.params);
     connection.query(boxInviteQuery3, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Invite3" , err);
