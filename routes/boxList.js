@@ -21,7 +21,10 @@ const boxFavoriteQuery = ("UPDATE boxOfUsrList SET boxFavorite=? WHERE usrKey=? 
 const boxInviteURL = ("/Invite/:usrKey/:boxKey");
 const boxInviteQuery1 = ("SELECT usrKey AS alarmSetUsrKey FROM usrList WHERE usrID=?;");
 const boxInviteQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage) VALUES (0, ?, ?, ?, ?);");
-const boxInviteQuery3 = ("SELECT pushToken FROM tokenList WHERE usrKey=?;");
+const boxInviteQuery3 = ("SELECT A.alarmKey, 0 alarmType, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmMessage, A.alarmDate FROM alarmList A\
+                         JOIN usrList Us ON A.alarmSetUsrKey=Us.usrKey JOIN boxOfUsrList BofU ON A.alarmBoxKey=BofU.boxKey AND A.alarmSetUsrKey=BofU.usrKey\
+                         WHERE A.alarmKey=?");
+const boxInviteQuery4 = ("SELECT pushToken FROM tokenList WHERE usrKey=?;");
 // AND NOT DB QUERY NODE ALARM
 const boxAcceptURL = ("/Accept/:alarmKey");
 const boxAcceptQuery = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) SELECT A.alarmGetUsrKey, A.alarmBoxKey, BofU.boxName, BofU.boxThumbnail, ?\
@@ -187,16 +190,36 @@ function boxInvite2(req, res, next) {
         }
         else {
             console.log(iInfo);
+            req.body.alarmKey = iInfo.insertKey;
             boxInvite3(req, res, next);
         }
     });
 }
 function boxInvite3(req, res, next) {
-    const alarmGetUsrKey = req.body.usrKey;
-    const queryParams = [alarmGetUsrKey];
+    const alarmKey = req.body.alarmKey;
+    const queryParams = [alarmKey];
     connection.query(boxInviteQuery3, queryParams, function(err, cur) {
         if (err != undefined) {
-            tools.giveError(res, 503, "Error in Invite3", err);
+            tools.giveError(res, 503, "Error in Invite3" , err);
+        }
+        else if (cur.length == 0){
+            tools.giveFail(res, "Fail in Invite3", null);
+        }
+        else {
+            req.body.alarm = cur;
+            boxInvite4(req, res, next);
+        }
+    });
+}
+function boxInvite4(req, res, next) {
+    const alarmGetUsrKey = req.body.usrKey;
+    const queryParams = [alarmGetUsrKey];
+    connection.query(boxInviteQuery4, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Invite4", err);
+        }
+        else if (cur.length == 0) {
+            tools.giveFail(res, "Fail in Invite4", null);
         }
         else {
             var pushTokens = [];
@@ -209,18 +232,7 @@ function boxInvite3(req, res, next) {
                 delayWhileIdle : true,
                 data: {
                     result : true,
-                    object : {
-                        type : "boxInvite",
-                        inviteData : {
-                            alarmKey : "",
-                            usrKey : "",
-                            usrName : "",
-                            boxKey : "",
-                            boxName : "",
-                            message : "",
-                            date : ""
-                        }
-                    }
+                    object : req.body.alarm
                 }
             });
             console.log(cur);
