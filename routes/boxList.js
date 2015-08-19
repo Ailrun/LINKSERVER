@@ -162,9 +162,15 @@ function boxInvite1(req, res, next) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Invite1", err);
         }
-        else {
+        else if (cur.length > 0){
             req.body.usrKey = cur[0].alarmSetUsrKey;
             boxInvite2(req, res, next);
+        }
+        else {
+            tools.giveFail(res, 503, "Fail in Invite1",
+                           {
+                               warning : "There is no such User"
+                           });
         }
     });
 }
@@ -193,6 +199,11 @@ function boxInvite3(req, res, next) {
             tools.giveError(res, 503, "Error in Invite3", err);
         }
         else {
+            var pushTokens = [];
+            cur.foreach(function(item, index, array) {
+                req.body.pushTokens.push(item.pushToken);
+            });
+
             var message = new gcm.Message({
                 collapseKey : "linkbox",
                 delayWhileIdle : true,
@@ -200,18 +211,25 @@ function boxInvite3(req, res, next) {
                     result : true,
                     object : {
                         type : "boxInvite",
-                        urlName : "",
-                        inviteDatas : ""
+                        inviteData : {
+                            alarmKey : "",
+                            usrKey : "",
+                            usrName : "",
+                            boxKey : "",
+                            boxName : "",
+                            message : "",
+                            date : ""
+                        }
                     }
                 }
             });
             console.log(cur);
 
-            sender.send(message, "d-fcowGbY_E:APA91bHo8WdD5GHT7hIqhy9ZGX90A4-jYcw9kqK3iho4h9eSrw1keZYr8rgaktupEACZlXV2n_BmdMtSnk3xmGw2O6YwmWcY4x8PNwJGz3dGnJMimG-gd-dviutadeDEg_EInuk07HRl", 4, function(err, result) {
+            sender.send(message, pushTokens, 4, function(err, result) {
                 console.log(result);
             });
 
-            res.status(200).send("Message Sent !!");
+            tools.giveSuccess(res, "Success in Invite", null);
         }
     });
 }
