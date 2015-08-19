@@ -208,7 +208,7 @@ function boxInvite3(req, res, next) {
             tools.giveFail(res, "Fail in Invite3", null);
         }
         else {
-            req.body.alarm = cur;
+            req.body.alarm = cur[0];
             boxInvite4(req, res, next);
         }
     });
