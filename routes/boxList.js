@@ -26,9 +26,10 @@ const boxInviteQuery3 = ("SELECT A.alarmKey, 0 alarmType, Us.usrName alarmSetUsr
                          WHERE A.alarmKey=?");
 const boxInviteQuery4 = ("SELECT pushToken FROM tokenList WHERE usrKey=?;");
 // AND NOT DB QUERY NODE ALARM
-const boxAcceptURL = ("/Accept/:alarmKey");
-const boxAcceptQuery = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) SELECT A.alarmGetUsrKey, A.alarmBoxKey, BofU.boxName, BofU.boxThumbnail, ?\
-                        FROM alarmList A JOIN boxOfUsrList BofU ON usrKey=A.alarmSetUsrKey AND boxKey=A.alarmBoxKey WHERE A.alarmKey=?;");
+const boxAcceptURL = ("/Accept/:alarmKey/:usrKey");
+const boxAcceptQuery1 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) SELECT A.alarmGetUsrKey, A.alarmBoxKey, BofU.boxName, BofU.boxThumbnail, ?\
+                         FROM alarmList A JOIN boxOfUsrList BofU ON usrKey=A.alarmSetUsrKey AND boxKey=A.alarmBoxKey WHERE A.alarmKey=?;");
+const boxAcceptQuery2 = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU WEHRE usrKey=? AND boxKey=?;");
 const boxDeclineURL = ("/Decline/:alarmKey");
 const boxDeclineQuery = ("DELETE FROM alarmList WHERE alarmKey=?;"); //This is also used for box Accept post process;
 const boxEditorListURL = ("/Editor/:usrKey");
@@ -165,15 +166,15 @@ function boxInvite1(req, res, next) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Invite1", err);
         }
-        else if (cur.length > 0){
-            req.body.usrKey = cur[0].alarmSetUsrKey;
-            boxInvite2(req, res, next);
-        }
-        else {
+        else if (cur.length == 0){
             tools.giveFail(res, 503, "Fail in Invite1",
                            {
                                warning : "There is no such User"
                            });
+        }
+        else {
+            req.body.usrKey = cur[0].alarmSetUsrKey;
+            boxInvite2(req, res, next);
         }
     });
 }
@@ -253,7 +254,7 @@ function boxAccept1(req, res, next) {
     const alarmKey = req.params.alarmKey;
     const boxIndex = req.body.boxIndex;
     const queryParams = [boxIndex, alarmKey];
-    connection.query(boxAcceptQuery, queryParams, function(err, iInfo) {
+    connection.query(boxAcceptQuery1, queryParams, function(err, iInfo) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Accept1", err);
         }
@@ -264,15 +265,31 @@ function boxAccept1(req, res, next) {
     });
 }
 function boxAccept2(req, res, next) {
-    const alarmKey = req.params.alarmKey;
+    const usrKey = req.params.alarmKey;
     const queryParams = [alarmKey];
-    connection.query(boxDeclineQuery, queryParams, function(err, dInfo) {
+    connection.query(boxAcceptQuery2, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Accept2", err);
         }
+        else if (cur.length == 0) {
+            tools.giveFail(res, "Fail in Accept2", null);
+        }
+        else {
+            req.body.box = cur[0];
+            boxAccept3(req, res, next);
+        }
+    });
+}
+function boxAccept3(req, res, next) {
+    const alarmKey = req.params.alarmKey;
+    const queryParams = [alarmKey];
+    connection.query(boxAcceptQuery3, queryParams, function(err, dInfo) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Accept3", err);
+        }
         else {
             console.log(dInfo);
-            tools.giveSuccess(res, "Success in Accept", null);
+            tools.giveSuccess(res, "Success in Accept", req.body.box);
         }
     });
 }
