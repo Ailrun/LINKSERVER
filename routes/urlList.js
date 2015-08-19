@@ -6,7 +6,7 @@ require('./connection')();
 
 //Seperate Tag loading from url loading
 const urlAllListURL = ("/AllList/:usrKey/:startNum/:urlNum");
-const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrKey usrWriterUsrKey, Us.usrName usrWriterUsrName, SUM(G.usrKey=?) like, SUM(!ISNULL(G.usrKey)) likeNum, SUM(!ISNULL(R.usrKey)) readLater\
+const urlAllListQuery = ("SELECT Ur.urlKey, Ur.url, Ur.urlTitle, Ur.urlThumbnail, Ur.urlDate, Us.usrKey usrWriterUsrKey, Us.usrName usrWriterUsrName, SUM(G.usrKey=?) like, SUM(ISNULL(G.usrKey)==0) likeNum, SUM(!ISNULL(R.usrKey)) readLater\
                          FROM urlList Ur LEFT JOIN goodList G ON G.urlKey=Ur.urlKey LEFT JOIN readLaterList R ON R.urlKey=Ur.urlKey AND R.usrKey=?\
                          JOIN usrList Us ON Ur.urlWriterUsrKey=Us.usrKey\
                          WHERE EXISTS (SELECT 1 FROM boxOfUsrList BofU WHERE BofU.usrKey=? AND Ur.urlBoxKey=BofU.boxKey)\
