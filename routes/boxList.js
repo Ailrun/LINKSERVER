@@ -225,9 +225,7 @@ function boxInvite4(req, res, next) {
         }
         else {
             var pushTokens = [];
-            cur.foreach(function(item, index, array) {
-                req.body.pushTokens.push(item.pushToken);
-            });
+            console.log(cur);
 
             var message = new gcm.Message({
                 collapseKey : "linkbox",
