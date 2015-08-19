@@ -29,7 +29,7 @@ const boxInviteQuery4 = ("SELECT pushToken FROM tokenList WHERE usrKey=?;");
 const boxAcceptURL = ("/Accept/:alarmKey/:usrKey");
 const boxAcceptQuery1 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThumbnail, boxIndex) SELECT A.alarmGetUsrKey, A.alarmBoxKey, BofU.boxName, BofU.boxThumbnail, ?\
                          FROM alarmList A JOIN boxOfUsrList BofU ON usrKey=A.alarmSetUsrKey AND boxKey=A.alarmBoxKey WHERE A.alarmKey=?;");
-const boxAcceptQuery2 = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU WEHRE usrKey=? AND boxKey=?;");
+const boxAcceptQuery2 = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU WHERE usrKey=? AND boxKey=?;");
 const boxDeclineURL = ("/Decline/:alarmKey");
 const boxDeclineQuery = ("DELETE FROM alarmList WHERE alarmKey=?;"); //This is also used for box Accept post process;
 const boxEditorListURL = ("/Editor/:usrKey");
