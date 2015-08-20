@@ -109,7 +109,7 @@ function boxRemove2(len, req, res, next) {
     const usrKey = req.params.usrKey;
     const boxKey = req.body.boxKey;
     const queryParams1 = [usrKey, boxKey];
-    const queryParams2 = [boxKey, boxKey];
+    const queryParams2 = [boxKey];
     if (len>1) {
         connection.query(boxRemoveQuery2_1, queryParams1, function(err, dInfo) {
             if (err != undefined) {
