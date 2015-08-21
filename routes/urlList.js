@@ -38,8 +38,7 @@ const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSe
                       SELECT 1, usrKey, ?, boxKey, ? FROM boxOfUsrList WHERE boxKey=? AND usrKey<>?;");
 
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
-const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;\
-                        ALTER TABLE urlList AUTO_INCREMENT=1;");
+const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;");
 
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
 const urlEditQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
@@ -62,8 +61,7 @@ const urlTagAddURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
 const urlTagAddQuery = ("INSERT INTO tagList (urlKey, tag) VALUES (?, ?);");
 
 const urlTagRemoveURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
-const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;\
-                           ALTER TABLE tagList AUTO_INCREMENT=1");
+const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
 
 const urlCommentListURL = ("/Comment/List/:usrKey/:boxKey/:urlKey");
 const urlCommentListQuery = ("SELECT C.usrKey, Us.usrThumbnail, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
@@ -73,8 +71,7 @@ const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
 const urlCommentAddQuery = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
 
 const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
-const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;\
-                               ALTER TABLE commentList AUTO_INCREMENT=1");
+const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
 
 const urlCommentEditURL = ("/Comment/Edit/:usrKey/:boxKey/:urlKey");
 const urlCommentEditQuery = ("UPDATE commentList SET comment=? WHERE commentKey=? AND usrKey=?;");

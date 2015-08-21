@@ -15,8 +15,7 @@ const boxAddQuery2 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, boxThu
 const boxRemoveURL = ("/Remove/:usrKey");
 const boxRemoveQuery1 = ("SELECT 1 FROM boxOfUsrList WHERE usrKey=? AND boxKey=?;");
 const boxRemoveQuery2_1 = ("DELETE FROM boxOfUsrList WHERE usrKey=? AND boxKey=?;");
-const boxRemoveQuery2_2 = ("DELETE FROM boxList WHERE boxKey=?;\
-                           ALTER TABLE boxList AUTO_INCREMENT=1");
+const boxRemoveQuery2_2 = ("DELETE FROM boxList WHERE boxKey=?;");
 
 const boxEditURL = ("/Edit/:usrKey");
 const boxEditQuery = ("UPDATE boxOfUsrList SET boxName=?, boxThumbnail=? WHERE usrKey=? AND boxKey=?;");
@@ -40,8 +39,7 @@ const boxAcceptQuery1 = ("INSERT INTO boxOfUsrList (usrKey, boxKey, boxName, box
 const boxAcceptQuery2 = ("SELECT boxKey, boxName, boxThumbnail, boxIndex, boxFavorite FROM boxOfUsrList BofU WHERE usrKey=? AND boxKey=?;");
 
 const boxDeclineURL = ("/Decline/:alarmKey");
-const boxDeclineQuery = ("DELETE FROM alarmList WHERE alarmKey=?;\
-                         ALTER TABLE alarmList AUTO_INCREMENT=1"); //This is also used for box Accept post process;
+const boxDeclineQuery = ("DELETE FROM alarmList WHERE alarmKey=?;"); //This is also used for box Accept post process;
 
 const boxEditorListURL = ("/Editor/:usrKey");
 const boxEditorListQuery = ("SELECT Us.usrName, Us.usrProfile FROM boxOfUsrList BofU JOIN usrList Us ON BofU.usrKey=Us.usrKey WHERE BofU.boxKey=?;");
