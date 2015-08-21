@@ -39,7 +39,7 @@ const urlAddQuery2 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSe
 
 const urlRemoveURL = ("/Remove/:usrKey/:boxKey");
 const urlRemoveQuery = ("DELETE FROM urlList WHERE urlKey=? AND urlWriterUsrKey=?;\
-                        ALTER TABLE urlList AUTO_INCREMENT=1");
+                        ALTER TABLE urlList AUTO_INCREMENT=1;");
 
 const urlEditURL = ("/Edit/:usrKey/:boxKey");
 const urlEditQuery = ("UPDATE urlList SET urlTitle=? WHERE urlKey=? AND urlWriterUsrKey=?;");
