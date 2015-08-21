@@ -25,7 +25,9 @@ const boxFavoriteQuery = ("UPDATE boxOfUsrList SET boxFavorite=? WHERE usrKey=? 
 
 const boxInviteURL = ("/Invite/:usrKey/:boxKey");
 const boxInviteQuery1 = ("SELECT usrKey AS alarmSetUsrKey FROM usrList WHERE usrID=?;");
-const boxInviteQuery2 = ("SELECT 1 FROM alarmList WHERE alarmGetUsrKey=? AND alarmBoxKey=?");
+const boxInviteQuery2 = ("SELECT 1 FROM alarmList WHERE alarmGetUsrKey=? AND alarmBoxKey=?\
+                         UNION ALL\
+                         SELECT 1 FROM boxOfUsrList WHERE usrKey=? AND boxKey=?");
 const boxInviteQuery3 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage) VALUES (0, ?, ?, ?, ?);");
 const boxInviteQuery4 = ("SELECT A.alarmKey, 0 alarmType, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmMessage, A.alarmDate FROM alarmList A\
                          JOIN usrList Us ON A.alarmSetUsrKey=Us.usrKey JOIN boxOfUsrList BofU ON A.alarmBoxKey=BofU.boxKey AND A.alarmSetUsrKey=BofU.usrKey\
@@ -190,7 +192,7 @@ function boxInvite1(req, res, next) {
 function boxInvite2(req, res, next) {
     const alarmBoxKey = req.params.boxKey;
     const alarmGetUsrKey = req.body.usrKey;
-    const queryParams = [alarmGetUsrKey, alarmBoxKey];
+    const queryParams = [alarmGetUsrKey, alarmBoxKey, alarmGetUsrKey, alarmBoxKey];
     connection.query(boxInviteQuery2, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Invite2", err);
