@@ -11,7 +11,7 @@ const usrLoginQuery3_1 = ("INSERT INTO tokenList (usrKey, pushToken, deviceKey) 
 const usrLoginQuery3_2 = ("UPDATE tokenList SET usrKey=?, pushToken=? WHERE deviceKey=?");
 const usrSignupURL = ("/Signup/:deviceKey");
 const usrSignupQuery1 = ("SELECT 1 FROM usrList WHERE usrID=?;");
-const usrSignupQuery2 = ("INSERT INTO usrList (usrID, usrPassword, usrName) VALUES (?, ?, ?);");
+const usrSignupQuery2 = ("INSERT INTO usrList (usrID, usrPassword, usrName, usrType) VALUES (?, ?, ?, ?);");
 const usrSignupQuery3 = ("SELECT 1 FROM tokenList WHERE deviceKey=?;");
 const usrSignupQuery4_1 = ("INSERT INTO tokenList (usrKey, pushToken, deviceKey) VALUES (?, ?, ?);");
 const usrSignupQuery4_2 = ("UPDATE tokenList SET usrKey=?, pushToken=? WHERE deviceKey=?;");
@@ -106,7 +106,8 @@ function usrSignup2(req, res, next) {
     const usrID =req.body.usrID;
     const usrPassword = req.body.usrPassword;
     const usrName = req.body.usrName;
-    const queryParams = [usrID, usrPassword, usrName];
+    const usrType = req.body.usrType;
+    const queryParams = [usrID, usrPassword, usrName, usrType];
     connection.query(usrSignupQuery2, queryParams, function(err, iInfo) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Signup2", err);
