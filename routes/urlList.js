@@ -69,7 +69,7 @@ const urlCommentListQuery = ("SELECT C.commentKey, C.usrKey, Us.usrProfile, Us.u
 
 const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
 const urlCommentAddQuery1 = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
-const urlCommentAddQuery2 = ("SELECT Us.usrProfile, Us.usrName, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=? WHERE C.commentKey=?;");
+const urlCommentAddQuery2 = ("SELECT Us.usrProfile usrProfile, Us.usrName usrName, C.commentDate commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=? WHERE C.commentKey=?;");
 
 const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
 const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
@@ -384,7 +384,7 @@ function urlCommentAdd2(req, res, next) {
             cur[0].commentKey = commentKey;
             cur[0].usrKey = usrKey;
             cur[0].comment = comment;
-            tools.giveSuccess(res, "Success in Comment Add", req.body);
+            tools.giveSuccess(res, "Success in Comment Add", cur[0]);
         }
     });
 }
