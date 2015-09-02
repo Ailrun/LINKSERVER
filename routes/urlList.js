@@ -64,7 +64,7 @@ const urlTagRemoveURL = ("/Tag/Add/:usrKey/:boxKey/:urlKey");
 const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
 
 const urlCommentListURL = ("/Comment/List/:usrKey/:boxKey/:urlKey");
-const urlCommentListQuery = ("SELECT C.usrKey, Us.usrThumbnail, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
+const urlCommentListQuery = ("SELECT C.usrKey, Us.usrProfile, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
                              ORDER BY C.commentDate DESC;");
 
 const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
