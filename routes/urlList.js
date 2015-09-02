@@ -65,7 +65,7 @@ const urlTagRemoveQuery = ("DELETE FROM tagList WHERE tagKey=? AND urlKey=?;");
 
 const urlCommentListURL = ("/Comment/List/:usrKey/:boxKey/:urlKey");
 const urlCommentListQuery = ("SELECT C.usrKey, Us.usrThumbnail, Us.usrName, C.comment, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=C.usrKey WHERE C.urlKey=?\
-                             ORDER BY C.commentDate DECS;");
+                             ORDER BY C.commentDate DESC;");
 
 const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
 const urlCommentAddQuery = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
@@ -365,7 +365,8 @@ function urlCommentAdd(req, res, next) {
         }
         else {
             console.log(iInfo);
-            tools.giveSuccess(res, "Success in Comment Add", null);
+            req.body.commentKey = iInfo.insertId;
+            tools.giveSuccess(res, "Success in Comment Add", req.body);
         }
     });
 }

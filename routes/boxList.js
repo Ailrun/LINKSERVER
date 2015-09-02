@@ -24,10 +24,10 @@ const boxFavoriteURL = ("/Favorite/:usrKey");
 const boxFavoriteQuery = ("UPDATE boxOfUsrList SET boxFavorite=? WHERE usrKey=? AND boxKey=?;");
 
 const boxInviteURL = ("/Invite/:usrKey/:boxKey");
-const boxInviteQuery1 = ("SELECT usrKey AS alarmSetUsrKey FROM usrList WHERE usrID=?;");
+const boxInviteQuery1 = ("SELECT usrKey AS alarmGetUsrKey FROM usrList WHERE usrID=?;");
 const boxInviteQuery2 = ("SELECT 1 FROM alarmList WHERE alarmGetUsrKey=? AND alarmBoxKey=?\
                          UNION ALL\
-                         SELECT 1 FROM boxOfUsrList WHERE usrKey=? AND boxKey=?");
+                         SELECT 1 FROM boxOfUsrList WHERE usrKey=? AND boxKey=?;");
 const boxInviteQuery3 = ("INSERT INTO alarmList (alarmType, alarmGetUsrKey, alarmSetUsrKey, alarmBoxKey, alarmMessage) VALUES (0, ?, ?, ?, ?);");
 const boxInviteQuery4 = ("SELECT A.alarmKey, 0 alarmType, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmMessage, A.alarmDate FROM alarmList A\
                          JOIN usrList Us ON A.alarmSetUsrKey=Us.usrKey JOIN boxOfUsrList BofU ON A.alarmBoxKey=BofU.boxKey AND A.alarmSetUsrKey=BofU.usrKey\
@@ -184,7 +184,7 @@ function boxInvite1(req, res, next) {
                            });
         }
         else {
-            req.body.usrKey = cur[0].alarmSetUsrKey;
+            req.body.usrKey = cur[0].alarmGetUsrKey;
             boxInvite2(req, res, next);
         }
     });

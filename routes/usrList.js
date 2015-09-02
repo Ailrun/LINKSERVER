@@ -37,7 +37,7 @@ function usrLogin1(req, res, next) {
             tools.giveError(res, 503, "Error in usrLogin1", err);
         }
         else if (cur.length == 0) {
-            tools.giveFail(res, "Fail in usrLogin1", null);
+            tools.giveFail(res, "Fail in usrLogin1", null);//errcode=NO_SUCH_USR
         }
         else {
             req.body = cur[0];
