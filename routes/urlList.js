@@ -384,6 +384,7 @@ function urlCommentAdd2(req, res, next) {
             cur[0].commentKey = commentKey;
             cur[0].commentKey = cur[0].commentKey + 0;
             cur[0].usrKey = usrKey;
+            cur[0].usrKey = cur[0].usrKey + 0;
             cur[0].comment = comment;
             tools.giveSuccess(res, "Success in Comment Add", cur[0]);
         }
