@@ -372,8 +372,8 @@ function urlCommentAdd1(req, res, next) {
     });
 }
 function urlCommentAdd2(req, res, next) {
-    const usrKey = req.params.usrKey;
-    const commentKey = req.body.commentKey;
+    const usrKey = req.params.usrKey + 0;
+    const commentKey = req.body.commentKey + 0;
     const comment = req.body.comment;
     const queryParams = [usrKey, commentKey];
     connection.query(urlCommentAddQuery2, queryParams, function(err, cur) {
