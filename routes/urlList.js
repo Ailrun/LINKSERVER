@@ -68,7 +68,8 @@ const urlCommentListQuery = ("SELECT C.commentKey, C.usrKey, Us.usrProfile, Us.u
                              ORDER BY C.commentDate DESC;");
 
 const urlCommentAddURL = ("/Comment/Add/:usrKey/:boxKey/:urlKey");
-const urlCommentAddQuery = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
+const urlCommentAddQuery1 = ("INSERT INTO commentList (urlKey, usrKey, comment) VALUES (?, ?, ?);");
+const urlCommentAddQuery2 = ("SELECT Us.usrProfile, Us.usrName, C.commentDate FROM commentList C JOIN usrList Us ON Us.usrKey=? WHERE C.commentKey=?;");
 
 const urlCommentRemoveURL = ("/Comment/Remove/:usrKey/:boxKey/:urlKey");
 const urlCommentRemoveQuery = ("DELETE FROM commentList WHERE commentKey=? AND usrKey=?;");
@@ -353,19 +354,36 @@ function urlCommentList(req, res, next) {
     });
 }
 
-router.post(urlCommentAddURL, urlCommentAdd);
-function urlCommentAdd(req, res, next) {
+router.post(urlCommentAddURL, urlCommentAdd1);
+function urlCommentAdd1(req, res, next) {
     const usrKey = req.params.usrKey;
     const urlKey = req.params.urlKey;
     const comment = req.body.comment;
     const queryParams = [urlKey, usrKey, comment];
-    connection.query(urlCommentAddQuery, queryParams, function(err, iInfo) {
+    connection.query(urlCommentAddQuery1, queryParams, function(err, iInfo) {
         if (err != undefined) {
-            tools.giveError(res, 503, "Error in Comment Add", err);
+            tools.giveError(res, 503, "Error in Comment Add1", err);
         }
         else {
             console.log(iInfo);
             req.body.commentKey = iInfo.insertId;
+            urlCommentAdd2(req, res, next);
+        }
+    });
+}
+function urlCommentAdd2(req, res, next) {
+    const usrKey = req.params.usrKey;
+    const commentKey = req.body.commentKey;
+    const comment = req.body.comment;
+    const queryParams = [usrKey, commentKey];
+    connection.query(urlCommentAddQuery2, queryParams, function(err, cur) {
+        if (err != undefined) {
+            tools.giveError(res, 503, "Error in Comment Add2", err);
+        }
+        else {
+            cur[0].commentKey = commentKey;
+            cur[0].usrKey = usrKey;
+            cur[0].comment = comment;
             tools.giveSuccess(res, "Success in Comment Add", req.body);
         }
     });
