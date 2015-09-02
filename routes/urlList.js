@@ -372,8 +372,8 @@ function urlCommentAdd1(req, res, next) {
     });
 }
 function urlCommentAdd2(req, res, next) {
-    const usrKey = req.params.usrKey + 0;
-    const commentKey = req.body.commentKey + 0;
+    const usrKey = req.params.usrKey;
+    const commentKey = req.body.commentKey;
     const comment = req.body.comment;
     const queryParams = [usrKey, commentKey];
     connection.query(urlCommentAddQuery2, queryParams, function(err, cur) {
@@ -382,6 +382,7 @@ function urlCommentAdd2(req, res, next) {
         }
         else {
             cur[0].commentKey = commentKey;
+            cur[0].commentKey = cur[0].commentKey + 0;
             cur[0].usrKey = usrKey;
             cur[0].comment = comment;
             tools.giveSuccess(res, "Success in Comment Add", cur[0]);
