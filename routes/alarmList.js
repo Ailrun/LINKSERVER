@@ -6,12 +6,11 @@ require('./connection')();
 
 const alarmAllListURL = ("/AllList/:usrKey");
 const alarmAllListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
-                           FROM alarmList A LEFT JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey\
-                           JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
-                           WHERE A.alarmGetUsrKey=? AND A.hidden=0 ORDER BY A.alarmDate DESC;");
+                           FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=? JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
+                           LEFT JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey WHERE A.alarmGetUsrKey=? AND A.hidden=0 ORDER BY A.alarmDate DESC;");
 const alarmHiddenListURL = ("/HiddenList/:usrKey");
 const alarmHiddenListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
-                              FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
+                              FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=? JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
                               LEFT JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey WHERE A.alarmGetUsrKey=? AND A.hidden=1 ORDER BY A.alarmDate DESC;");
 const alarmHiddenURL = ("/Hidden/:usrKey/:alarmKey");
 const alarmHiddenQuery = ("UPDATE alarmList SET hidden=1 WHERE alarmKey=?;");
@@ -19,7 +18,7 @@ const alarmHiddenQuery = ("UPDATE alarmList SET hidden=1 WHERE alarmKey=?;");
 router.get(alarmAllListURL, alarmAllList);
 function alarmAllList(req, res, next) {
     const usrKey = req.params.usrKey;
-    const queryParams = [usrKey];
+    const queryParams = [usrKey, usrKey];
     connection.query(alarmAllListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in All List", err);
@@ -33,7 +32,7 @@ function alarmAllList(req, res, next) {
 router.get(alarmHiddenListURL, alarmHiddenList);
 function alarmHiddenList(req, res, next) {
     const usrKey = req.params.usrKey;
-    const queryParams = [usrKey];
+    const queryParams = [usrKey, usrKey];
     connection.query(alarmHiddenListQuery, queryParams, function(err, cur) {
         if (err != undefined) {
             tools.giveError(res, 503, "Error in Non Hidden List", err);
