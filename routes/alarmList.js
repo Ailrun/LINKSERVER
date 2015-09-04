@@ -5,13 +5,27 @@ var tools = require('./tools');
 require('./connection')();
 
 const alarmAllListURL = ("/AllList/:usrKey");
-const alarmAllListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
-                           FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=? JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
-                           LEFT JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey WHERE A.alarmGetUsrKey=? AND A.hidden=0 ORDER BY A.alarmDate DESC;");
+const alarmAllListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, \
+                           A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
+                           FROM alarmList A JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=A.alarmGetUsrKey\
+                           JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey WHERE A.alarmGetUsrKey=16 AND A.hidden=0\
+                           UNION ALL\
+                           SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, \
+                           A.alarmUrlKey alarmUrlKey, \"\" alarmUrlTitle, A.alarmMessage\
+                           FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=A.alarmSetUsrKey\
+                           JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey WHERE A.alarmGetUsrKey=16 AND ISNULL(A.alarmUrlKey) AND A.hidden=0\
+                           ORDER BY alarmDate DESC;");
 const alarmHiddenListURL = ("/HiddenList/:usrKey");
-const alarmHiddenListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
-                              FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=? JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey\
-                              LEFT JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey WHERE A.alarmGetUsrKey=? AND A.hidden=1 ORDER BY A.alarmDate DESC;");
+const alarmHiddenListQuery = ("SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, \
+                           A.alarmUrlKey alarmUrlKey, Ur.urlTitle alarmUrlTitle, A.alarmMessage\
+                           FROM alarmList A JOIN urlList Ur ON Ur.urlKey=A.alarmUrlKey JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=A.alarmGetUsrKey\
+                           JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey WHERE A.alarmGetUsrKey=16 AND A.hidden=1\
+                           UNION ALL\
+                           SELECT A.alarmType, A.alarmKey, A.alarmDate, A.hidden, Us.usrName alarmSetUsrName, A.alarmBoxKey, BofU.boxName alarmBoxName, \
+                           A.alarmUrlKey alarmUrlKey, \"\" alarmUrlTitle, A.alarmMessage\
+                           FROM alarmList A JOIN boxOfUsrList BofU ON BofU.boxKey=A.alarmBoxKey AND BofU.usrKey=A.alarmSetUsrKey\
+                           JOIN usrList Us ON Us.usrKey=A.alarmSetUsrKey WHERE A.alarmGetUsrKey=16 AND ISNULL(A.alarmUrlKey) AND A.hidden=1\
+                           ORDER BY alarmDate DESC;");
 const alarmHiddenURL = ("/Hidden/:usrKey/:alarmKey");
 const alarmHiddenQuery = ("UPDATE alarmList SET hidden=1 WHERE alarmKey=?;");
 
